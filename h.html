@@ -36,6 +36,11 @@
       margin-left: 10px;
       color: #ff6600;
     }
+    .domain {
+      color: gray;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
     .controls {
       margin-bottom: 20px;
       text-align: center;
@@ -48,7 +53,7 @@
 </head>
 <body>
 
-<h1>Hacker News Topics with Comments</h1>
+<h1>Hacker News Topics with 50+ Comments</h1>
 
 <div class="controls">
   <label for="commentFilter">Minimum Comments: </label>
@@ -75,6 +80,15 @@
     const storyUrl = `https://hacker-news.firebaseio.com/v0/item/${storyId}.json`;
     const response = await fetch(storyUrl);
     return response.json();
+  }
+
+  // Function to extract domain from URL
+  function getDomainFromUrl(url) {
+    try {
+      return new URL(url).hostname.replace('www.', '');
+    } catch (e) {
+      return '';
+    }
   }
 
   // Function to display stories with a specified minimum number of comments
@@ -111,9 +125,18 @@
         commentsLink.target = '_blank';
         commentsLink.className = 'comments-link';
         commentsLink.textContent = `(Comments: ${storyDetails.descendants})`;
-        
-        // Append links to list item
+
+        // Domain (if available)
+        const domainText = document.createElement('span');
+        const domain = getDomainFromUrl(storyDetails.url);
+        if (domain) {
+          domainText.className = 'domain';
+          domainText.textContent = `(${domain})`;
+        }
+
+        // Append links and domain to list item
         listItem.appendChild(storyLink);
+        if (domain) listItem.appendChild(domainText);
         listItem.appendChild(commentsLink);
         
         // Append list item to the unordered list
