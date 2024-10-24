@@ -142,7 +142,7 @@
                     });
                 });
 
-                allAuthors.forEach(author => {
+                Array.from(allAuthors).sort().forEach(author => {
                     const option = document.createElement('option');
                     option.value = author;
                     option.textContent = author;
