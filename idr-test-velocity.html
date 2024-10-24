@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Analysis Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .chart-container {
+            width: 80%;
+            margin: auto;
+            height: 400px; /* Increase height to make the chart about 2 times taller */
+        }
+        .details-table, .author-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+        .details-table th, .details-table td, .author-table th, .author-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table th, .author-table th {
+            background-color: #f2f2f2;
+        }
+        .details-section {
+            margin-top: 50px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+        .filter-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Projects Analysis</h1>
+    <h2 id="totalTests">Loading total number of existing tests...</h2>
+    <div class="chart-container">
+        <canvas id="testChart"></canvas>
+    </div>
+    <div class="filter-container">
+        <div>
+            <label for="authorFilter">Filter by Author:</label>
+            <select id="authorFilter">
+                <option value="all">All Authors</option>
+            </select>
+        </div>
+        <div>
+            <label for="projectFilter">Filter by Project:</label>
+            <select id="projectFilter">
+                <option value="all">All Projects</option>
+            </select>
+        </div>
+    </div>
+    <div class="details-section" id="details">
+        <h2 id="detailsHeader">Details for Selected Month</h2>
+        <table class="details-table" id="detailsTable">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Class</th>
+                    <th>Test Name</th>
+                    <th>Author</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="noSelectionMessage">
+                    <td colspan="4">Please select a data point from the above graph to view details.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="details-section" id="authorTestCount">
+        <h2>Tests Added per Author</h2>
+        <table class="author-table" id="authorTable">
+            <thead>
+                <tr>
+                    <th>Author</th>
+                    <th>Number of Tests</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Author test count will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Load the JSON data from the file
+        fetch('test_analysis_results.json')
+        //fetch('https://servicenow.sharepoint.com/:u:/s/interinstancecommunicationdev/EY88dC42pQFCgk3akxfuWtQB1e0A70UaN-VK_shRjtSU-w?e=WK4er1')
+
+            .then(response => response.json())
+            .then(data => {
+                // Separate out the monthly test data and author test count data
+                const monthlyData = data.filter(item => item.month);
+                const authorTestCountData = data.find(item => item.author_test_count)?.author_test_count;
+                
+                const labels = monthlyData.map(item => item.month);
+                const integrationCounts = monthlyData.map(item => item.integration_count);
+                const unitCounts = monthlyData.map(item => item.unit_count);
+                const details = monthlyData.reduce((acc, item) => {
+                    acc[item.month] = {
+                        integration_details: item.integration_details,
+                        unit_details: item.unit_details
+                    };
+                    return acc;
+                }, {});
+
+                // Populate the filters
+                const authorFilter = document.getElementById('authorFilter');
+                const projectFilter = document.getElementById('projectFilter');
+                const allAuthors = new Set();
+                const allProjects = new Set();
+                monthlyData.forEach(item => {
+                    item.integration_details.concat(item.unit_details).forEach(detail => {
+                        allAuthors.add(detail.author);
+                        allProjects.add(detail.project);
+                    });
+                });
+
+                allAuthors.forEach(author => {
+                    const option = document.createElement('option');
+                    option.value = author;
+                    option.textContent = author;
+                    authorFilter.appendChild(option);
+                });
+
+                allProjects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project;
+                    option.textContent = project;
+                    projectFilter.appendChild(option);
+                });
+
+                // Calculate total number of tests
+                const totalIntegrationTests = integrationCounts.reduce((a, b) => a + b, 0);
+                const totalUnitTests = unitCounts.reduce((a, b) => a + b, 0);
+                const totalTests = totalIntegrationTests + totalUnitTests;
+
+                // Update the header with the total number of tests
+                document.getElementById('totalTests').textContent = 
+                    `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
+
+                // Create the line chart
+                const ctx = document.getElementById('testChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Integration Tests Added',
+                                data: integrationCounts,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointStyle: 'circle',
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                            },
+                            {
+                                label: 'Unit Tests Added',
+                                data: unitCounts,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointStyle: 'circle',
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        onClick: (e) => {
+                            const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                            if (activePoints.length > 0) {
+                                const { index, datasetIndex } = activePoints[0];
+                                const selectedMonth = labels[index];
+                                const selectedTestType = datasetIndex === 0 ? 'integration' : 'unit';
+                                populateDetails(selectedMonth, selectedTestType);
+                            } else {
+                                const xAxis = chart.scales.x;
+                                const selectedMonthIndex = xAxis.getValueForPixel(e.x);
+                                if (selectedMonthIndex !== null && selectedMonthIndex >= 0 && selectedMonthIndex < labels.length) {
+                                    const selectedMonth = labels[Math.round(selectedMonthIndex)];
+                                    populateDetails(selectedMonth, 'both');
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Tests'
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Populate details table based on selected month and filters
+                function populateDetails(month, testType) {
+                    // Update the header to reflect the selected month
+                    document.getElementById('detailsHeader').textContent = `${testType.charAt(0).toUpperCase() + testType.slice(1)} tests added in ${new Date(month).toLocaleString('en-us', { month: 'long', year: 'numeric' })}`;
+
+                    const detailsTableBody = document.getElementById('detailsTable').getElementsByTagName('tbody')[0];
+                    detailsTableBody.innerHTML = '';
+                    document.getElementById('noSelectionMessage')?.remove();
+                    const selectedDetails = details[month];
+                    if (selectedDetails) {
+                        let allDetails;
+                        if (testType === 'integration') {
+                            allDetails = selectedDetails.integration_details;
+                        } else if (testType === 'unit') {
+                            allDetails = selectedDetails.unit_details;
+                        } else {
+                            allDetails = [...selectedDetails.integration_details, ...selectedDetails.unit_details];
+                        }
+
+                        // Apply author and project filters
+                        const selectedAuthor = authorFilter.value;
+                        const selectedProject = projectFilter.value;
+                        if (selectedAuthor !== 'all') {
+                            allDetails = allDetails.filter(detail => detail.author === selectedAuthor);
+                        }
+                        if (selectedProject !== 'all') {
+                            allDetails = allDetails.filter(detail => detail.project === selectedProject);
+                        }
+
+                        if (allDetails.length > 0) {
+                            allDetails.forEach(detail => {
+                                const row = document.createElement('tr');
+                                const projectCell = document.createElement('td');
+                                projectCell.textContent = detail.project ? detail.project : 'N/A';
+                                const classCell = document.createElement('td');
+                                const classLink = document.createElement('a');
+                                classLink.href = detail.project.includes('glide-idr') ? `https://code.devsnc.com/dev/glide/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java` : `https://code.devsnc.com/dev/glide-test/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java`;
+                                classLink.textContent = detail.class;
+                                classCell.appendChild(classLink);
+                                const testCell = document.createElement('td');
+                                testCell.textContent = detail.test;
+                                const authorCell = document.createElement('td');
+                                const authorLink = document.createElement('a');
+                                authorLink.href = `#author_${detail.author.replace(/\s+/g, '_')}`;
+                                authorLink.textContent = detail.author;
+                                authorLink.addEventListener('click', function() {
+                                    highlightAuthorRow(detail.author);
+                                });
+                                authorCell.appendChild(authorLink);
+                                row.appendChild(projectCell);
+                                row.appendChild(classCell);
+                                row.appendChild(testCell);
+                                row.appendChild(authorCell);
+                                detailsTableBody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            const noDataCell = document.createElement('td');
+                            noDataCell.setAttribute('colspan', 4);
+                            noDataCell.textContent = 'No tests found for this month based on the current filters.';
+                            row.appendChild(noDataCell);
+                            detailsTableBody.appendChild(row);
+                        }
+                    }
+                }
+
+                // Populate author test count table
+                if (authorTestCountData) {
+                    const authorTableBody = document.getElementById('authorTable').getElementsByTagName('tbody')[0];
+                    authorTableBody.innerHTML = '';
+                    for (const [author, count] of Object.entries(authorTestCountData)) {
+                        const row = document.createElement('tr');
+                        row.id = `author_${author.replace(/\s+/g, '_')}`;
+                        const authorCell = document.createElement('td');
+                        authorCell.textContent = author;
+                        const countCell = document.createElement('td');
+                        countCell.textContent = count;
+                        row.appendChild(authorCell);
+                        row.appendChild(countCell);
+                        authorTableBody.appendChild(row);
+                    }
+                }
+
+                // Highlight author row in the author test count table
+                function highlightAuthorRow(author) {
+                    // Remove previous highlights
+                    document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+
+                    // Highlight the new author row
+                    const authorRow = document.getElementById(`author_${author.replace(/\s+/g, '_')}`);
+                    if (authorRow) {
+                        authorRow.classList.add('highlight');
+                        // Scroll to the highlighted row
+                        authorRow.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+
+                // Event listeners for filters
+                authorFilter.addEventListener('change', () => {
+                    updateChartAndDetails();
+                });
+
+                projectFilter.addEventListener('change', () => {
+                    updateChartAndDetails();
+                });
+
+                function updateChartAndDetails() {
+                    // Filter the data based on selected author and project
+                    const selectedAuthor = authorFilter.value;
+                    const selectedProject = projectFilter.value;
+
+                    const filteredData = monthlyData.map(item => {
+                        let integrationCount = 0;
+                        let unitCount = 0;
+
+                        if (selectedProject === 'all' && selectedAuthor === 'all') {
+                            integrationCount = item.integration_details.length;
+                            unitCount = item.unit_details.length;
+                        } else {
+                            const filteredIntegrationDetails = item.integration_details.filter(detail => 
+                                (selectedAuthor === 'all' || detail.author === selectedAuthor) && 
+                                (selectedProject === 'all' || detail.project === selectedProject)
+                            );
+                            const filteredUnitDetails = item.unit_details.filter(detail => 
+                                (selectedAuthor === 'all' || detail.author === selectedAuthor) && 
+                                (selectedProject === 'all' || detail.project === selectedProject)
+                            );
+
+                            integrationCount = filteredIntegrationDetails.length;
+                            unitCount = filteredUnitDetails.length;
+                        }
+
+                        return {
+                            month: item.month,
+                            integration_count: integrationCount,
+                            unit_count: unitCount,
+                            integration_details: item.integration_details,
+                            unit_details: item.unit_details
+                        };
+                    });
+
+                    // Update chart data
+                    chart.data.labels = filteredData.map(item => item.month);
+                    chart.data.datasets[0].data = filteredData.map(item => item.integration_count);
+                    chart.data.datasets[1].data = filteredData.map(item => item.unit_count);
+                    chart.update();
+
+                    // Update the details for the first available month
+                    const firstMonth = filteredData.find(item => item.integration_count > 0 || item.unit_count > 0);
+                    if (firstMonth) {
+                        populateDetails(firstMonth.month, 'both');
+                    } else {
+                        document.getElementById('detailsHeader').textContent = 'Details for Selected Month';
+                        const detailsTableBody = document.getElementById('detailsTable').getElementsByTagName('tbody')[0];
+                        detailsTableBody.innerHTML = '<tr><td colspan="4">No tests found for this selection.</td></tr>';
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading JSON data:', error));
+    </script>
+</body>
+</html>
+
