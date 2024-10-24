@@ -100,8 +100,6 @@
     <script>
         // Load the JSON data from the file
         fetch('test_analysis_results.json')
-        //fetch('https://servicenow.sharepoint.com/:u:/s/interinstancecommunicationdev/EY88dC42pQFCgk3akxfuWtQB1e0A70UaN-VK_shRjtSU-w?e=WK4er1')
-
             .then(response => response.json())
             .then(data => {
                 // Separate out the monthly test data and author test count data
@@ -261,6 +259,7 @@
                                 const classCell = document.createElement('td');
                                 const classLink = document.createElement('a');
                                 classLink.href = detail.project.includes('glide-idr') ? `https://code.devsnc.com/dev/glide/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java` : `https://code.devsnc.com/dev/glide-test/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java`;
+                                classLink.target = '_blank';
                                 classLink.textContent = detail.class;
                                 classCell.appendChild(classLink);
                                 const testCell = document.createElement('td');
