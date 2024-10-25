@@ -7,32 +7,56 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
             margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
         }
         .chart-container {
             width: 80%;
             margin: auto;
-            height: 400px; /* Increase height to make the chart about 2 times taller */
+            height: 450px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #ffffff;
+            padding: 20px;
         }
         .details-table, .author-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 40px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
         }
         .details-table th, .details-table td, .author-table th, .author-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px;
             text-align: left;
         }
         .details-table th, .author-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .details-table tr:nth-child(even), .author-table tr:nth-child(even) {
             background-color: #f2f2f2;
+        }
+        .details-table tr:hover, .author-table tr:hover {
+            background-color: #e1f5e1;
         }
         .details-section {
             margin-top: 50px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
         }
         .highlight {
-            background-color: yellow;
+            background-color: #ffeb3b;
         }
         .filter-container {
             margin-top: 20px;
@@ -41,6 +65,16 @@
             width: 80%;
             margin-left: auto;
             margin-right: auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
     </style>
 <script>
@@ -179,31 +213,40 @@
                                 label: 'Integration Tests Added',
                                 data: integrationCounts,
                                 borderColor: 'rgba(75, 192, 192, 1)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderWidth: 2,
+                                backgroundColor: ctx.createLinearGradient(0, 0, 0, 450),
                                 fill: true,
+                                borderWidth: 3,
                                 tension: 0.4,
                                 pointStyle: 'circle',
-                                pointRadius: 5,
-                                pointHoverRadius: 7,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
                             },
                             {
                                 label: 'Unit Tests Added',
                                 data: unitCounts,
                                 borderColor: 'rgba(255, 99, 132, 1)',
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                borderWidth: 2,
+                                backgroundColor: ctx.createLinearGradient(0, 0, 0, 450),
                                 fill: true,
+                                borderWidth: 3,
                                 tension: 0.4,
                                 pointStyle: 'circle',
-                                pointRadius: 5,
-                                pointHoverRadius: 7,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            }
+                        },
                         onClick: (e) => {
                             const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                             if (activePoints.length > 0) {
@@ -217,13 +260,19 @@
                             x: {
                                 title: {
                                     display: true,
-                                    text: 'Month'
+                                    text: 'Month',
+                                    font: {
+                                        size: 16
+                                    }
                                 }
                             },
                             y: {
                                 title: {
                                     display: true,
-                                    text: 'Number of Tests'
+                                    text: 'Number of Tests',
+                                    font: {
+                                        size: 16
+                                    }
                                 },
                                 beginAtZero: true
                             }
