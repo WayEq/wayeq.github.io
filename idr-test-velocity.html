@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Analysis Results</title>
@@ -76,26 +77,25 @@
             border-radius: 4px;
             border: 1px solid #ddd;
         }
-        .useful-links-section {
+        .useful-links-section.subtle-links {
             width: 80%;
             margin: auto;
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #e6f7ff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
             border-radius: 8px;
         }
         .useful-links-row {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
             list-style-type: none;
             padding-left: 0;
         }
         .useful-links-section a {
-            color: #007BFF;
+            color: #555;
             text-decoration: none;
-            font-weight: bold;
+            font-size: 14px;
         }
         .useful-links-section a:hover {
             text-decoration: underline;
@@ -120,11 +120,12 @@
 </head>
 
     <h1>IDR Test Velocity</h1>
-    <div class="useful-links-section">
+    <div class="useful-links-section subtle-links">
         <ul class="useful-links-row">
             <li><a href="https://servicenow.sharepoint.com/sites/hermes/SitePages/Dependable-IT-Framework-Training.aspx" target="_blank">IT Framework Training</a></li>
             <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do" target="_blank">Nightly IT Results</a></li>
             <li><a href="https://code.devsnc.com/aaron-shoal/it-runner" target="_blank">Zen IT Runner</a></li>
+            <li><a href="https://servicenow-my.sharepoint.com/:x:/r/personal/aaron_shoal_servicenow_com/_layouts/15/Doc.aspx?sourcedoc=%7BC911D78E-7803-4E52-A292-7D6209BF3983%7D&file=classes_without_it.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&ct=1729643200104&wdOrigin=OFFICECOM-WEB.START.CONTENTACTIONS&cid=64f3a580-8886-46ca-91d5-83f8dd127439&wdPreviousSessionSrc=HarmonyWeb&wdPreviousSession=74aaa4d3-16e8-4e58-9b1e-f52a46d7a578" target="_blank">Classes Needing Tests</a></li>
         </ul>
     </div>
     <h2 id="totalTests">Loading total number of existing tests...</h2>
@@ -180,16 +181,24 @@
 
     <script>
         // Load the JSON data from the file
+        console.log('Starting data load...');
         fetch('test_analysis_results.json')
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response received:', response);
+                return response.json();
+            })
             .then(data => {
+                console.log('Data loaded:', data);
                 // Separate out the monthly test data and author test count data
                 const monthlyData = data.filter(item => item.month);
                 const authorTestCountData = data.find(item => item.author_test_count)?.author_test_count;
                 
                 const labels = monthlyData.map(item => item.month);
+                console.log('Labels:', labels);
                 const integrationCounts = monthlyData.map(item => item.integration_count);
+                console.log('Integration Counts:', integrationCounts);
                 const unitCounts = monthlyData.map(item => item.unit_count);
+                console.log('Unit Counts:', unitCounts);
                 const details = monthlyData.reduce((acc, item) => {
                     acc[item.month] = {
                         integration_details: item.integration_details,
@@ -235,6 +244,7 @@
 
                 // Create the line chart
                 const ctx = document.getElementById('testChart').getContext('2d');
+                console.log('Initializing chart with labels:', labels);
                 const chart = new Chart(ctx, {
                     type: 'line',
                     data: {
