@@ -193,7 +193,11 @@
                 const monthlyData = data.filter(item => item.month);
                 const authorTestCountData = data.find(item => item.author_test_count)?.author_test_count;
                 
-                const labels = monthlyData.map(item => item.month);
+                const labels = monthlyData.map(item => {
+    const [year, month] = item.month.split('-');
+    const correctedMonth = String(Number(month)).padStart(2, '0');
+    return `${year}-${correctedMonth}`;
+});
                 console.log('Labels:', labels);
                 const integrationCounts = monthlyData.map(item => item.integration_count);
                 console.log('Integration Counts:', integrationCounts);
@@ -402,8 +406,9 @@
                 // Update the details table only when a chart point is clicked
                 function populateDetails(month, testType) {
                     // Update the header to reflect the selected month
-                    document.getElementById('detailsHeader').textContent = `${testType.charAt(0).toUpperCase() + testType.slice(1)} tests added in ${new Date(month).toLocaleString('en-us', { month: 'long', year: 'numeric' })}`;
-
+                    const [year, monthPart] = month.split('-');
+                    const correctedMonth = new Date(year, Number(monthPart) - 1);
+                    document.getElementById('detailsHeader').textContent = `${testType.charAt(0).toUpperCase() + testType.slice(1)} tests added in ${correctedMonth.toLocaleString('en-us', { month: 'long', year: 'numeric' })}`;
                     const detailsTableBody = document.getElementById('detailsTable').getElementsByTagName('tbody')[0];
                     detailsTableBody.innerHTML = '';
                     document.getElementById('noSelectionMessage')?.remove();
