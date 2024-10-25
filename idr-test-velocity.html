@@ -54,6 +54,9 @@
                     noDataCell.textContent = 'Please select a data point from the above graph to view details.';
                     row.appendChild(noDataCell);
                     detailsTableBody.appendChild(row);
+
+                    // Reset the details header
+                    document.getElementById('detailsHeader').textContent = 'Details for Selected Month';
                 }
             </script>
 </head>
@@ -101,7 +104,7 @@
             <thead>
                 <tr>
                     <th>Author</th>
-                    <th>Number of Tests Added</th>
+                    <th>Number of Tests</th>
                 </tr>
             </thead>
             <tbody>
@@ -220,7 +223,7 @@
                             y: {
                                 title: {
                                     display: true,
-                                    text: 'Number of Tests Added'
+                                    text: 'Number of Tests'
                                 },
                                 beginAtZero: true
                             }
