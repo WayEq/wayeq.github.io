@@ -76,6 +76,30 @@
             border-radius: 4px;
             border: 1px solid #ddd;
         }
+        .useful-links-section {
+            width: 80%;
+            margin: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e6f7ff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .useful-links-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .useful-links-section a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .useful-links-section a:hover {
+            text-decoration: underline;
+        }
     </style>
 <script>
                 // Reset the details table to the default message
@@ -94,8 +118,15 @@
                 }
             </script>
 </head>
-<body>
+
     <h1>IDR Test Velocity</h1>
+    <div class="useful-links-section">
+        <ul class="useful-links-row">
+            <li><a href="https://servicenow.sharepoint.com/sites/hermes/SitePages/Dependable-IT-Framework-Training.aspx" target="_blank">IT Framework Training</a></li>
+            <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do" target="_blank">Nightly IT Results</a></li>
+            <li><a href="https://code.devsnc.com/aaron-shoal/it-runner" target="_blank">Zen IT Runner</a></li>
+        </ul>
+    </div>
     <h2 id="totalTests">Loading total number of existing tests...</h2>
     <div class="chart-container">
         <canvas id="testChart"></canvas>
@@ -429,4 +460,3 @@
     </script>
 </body>
 </html>
-
