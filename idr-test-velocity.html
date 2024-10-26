@@ -144,7 +144,8 @@
         <thead>
         <tr>
             <th>Project</th>
-            <th>Class</th>
+            <th>Test Class</th>
+            <th>Coverage</th>
             <th>Test Name</th>
             <th>Author</th>
         </tr>
@@ -213,7 +214,7 @@
 
 
     // Update the chart data only, not the details table
-    function updateChart() {
+    function updateChart(monthlyData, chart) {
         // Filter the data based on selected author and project
         const selectedAuthor = authorFilter.value;
         const selectedProject = projectFilter.value;
@@ -247,8 +248,17 @@
         chart.data.datasets[1].data = filteredData.map(item => item.unit_count);
         chart.update();
     }
+    // Function to generate the class coverage URL
+    function generateCoverageUrl(testClass, packagePath) {
+        // Remove the 'IT' suffix to get the class under test
+        const classUnderTest = testClass.replace(/IT$/, '').replace(/Test$/, '');
 
-    // Update the details table only when a chart point is clicked
+        // Construct the URL
+        const baseUrl = "https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2F";
+        return `${baseUrl}${packagePath}%2F${classUnderTest}.java`;
+    }
+
+    // Update the function that populates the details table
     function populateDetails(month, testType, details) {
         // Update the header to reflect the selected month
         const [year, month2] = month.split('-');  // Split the string into year and month parts
@@ -289,9 +299,16 @@
                     projectCell.textContent = detail.project ? detail.project : 'N/A';
                     const classCell = document.createElement('td');
                     const classLink = document.createElement('a');
+                    const coverageCell = document.createElement('td');
                     classLink.href = detail.project.includes('glide-idr') ? `https://code.devsnc.com/dev/glide/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java` : `https://code.devsnc.com/dev/glide-test/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java`;
                     classLink.target = '_blank';
                     classLink.textContent = detail.class;
+                    const coverageLink = document.createElement('a');
+                    const packagePath = detail.package; // Assuming package path is in the format required
+                    coverageLink.href = generateCoverageUrl(detail.class, packagePath);
+                    coverageLink.target = '_blank';
+                    coverageLink.textContent = "link";
+                    coverageCell.appendChild(coverageLink);
                     classCell.appendChild(classLink);
                     const testCell = document.createElement('td');
                     testCell.textContent = detail.test;
@@ -305,6 +322,7 @@
                     authorCell.appendChild(authorLink);
                     row.appendChild(projectCell);
                     row.appendChild(classCell);
+                    row.appendChild(coverageCell);
                     row.appendChild(testCell);
                     row.appendChild(authorCell);
                     detailsTableBody.appendChild(row);
@@ -319,6 +337,7 @@
             }
         }
     }
+
 
     // end functions
 
@@ -499,12 +518,12 @@
     // Event listeners for filters - only update the chart, not the details table
     authorFilter.addEventListener('change', () => {
         resetDetailsTable();
-        updateChart();
+        updateChart(monthlyData, chart);
     });
 
     projectFilter.addEventListener('change', () => {
         resetDetailsTable();
-        updateChart();
+        updateChart(monthlyData, chart);
     });
 
     })
