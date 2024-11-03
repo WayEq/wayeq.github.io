@@ -43,6 +43,11 @@ package_pattern = re.compile(r"^\s*package\s+([\w.]+);")
 # Dictionary to store test counts by author
 author_test_count = defaultdict(int)
 
+
+root_test_metadata = []
+monthly_aggregation_data = defaultdict(lambda: {"integration": 0, "unit": 0})
+
+
 # Dictionary to store test counts and details by month
 month_test_map = defaultdict(lambda: {"integration": 0, "unit": 0})
 month_test_details = defaultdict(lambda: {"integration": [], "unit": []})
@@ -65,7 +70,7 @@ def process_file(repo_dir, file, project_name, test_type):
 
     if not os.path.exists(file):
         return
-    
+
     # Run grep to find all @Test or @InjectedTest annotations in the file
     result = subprocess.run(['grep', '-nE', '@Test|@InjectedTest', file], capture_output=True, text=True)
     if result.returncode != 0:
@@ -124,13 +129,15 @@ def process_file(repo_dir, file, project_name, test_type):
             # Add the test to the dictionary with a lock to prevent race conditions
             author_test_count[author] += 1
             with map_lock:
-                month_test_map[month_year][test_type] += 1
-                month_test_details[month_year][test_type].append({
+                monthly_aggregation_data[month_year][test_type] += 1
+                root_test_metadata.append({
                     "project": project_name,
                     "package": package_name if package_name else "unknown/package",
                     "class": class_name,
                     "test": test_name,
-                    "author": author
+                    "test_type": test_type,
+                    "author": author,
+                    "timestamp": date_str
                 })
         except Exception as e:
             continue
@@ -187,21 +194,20 @@ else:
 # Sort author_test_count by the number of tests in descending order
 author_test_count_sorted = dict(sorted(author_test_count.items(), key=lambda item: item[1], reverse=True))
 
-output_data = []
-for month in generate_months(start_date, end_date):
-    month_data = {
-        "month": month,
-        "integration_count": month_test_map[month]["integration"],
-        "unit_count": month_test_map[month]["unit"],
-        "integration_details": month_test_details[month]["integration"],
-        "unit_details": month_test_details[month]["unit"]
-    }
-    output_data.append(month_data)
-
 # Save the results to a JSON file
-output_data.append({
+
+sorted_monthly_aggregates = sorted(
+    [{"month": month, "integration_count": counts["integration"], "unit_count": counts["unit"]}
+     for month, counts in monthly_aggregation_data.items()],
+    key=lambda x: datetime.strptime(x["month"], "%Y-%m")  # Sorts by year-month as a date
+)
+
+# Correct JSON output generation
+output_data = {
+    "test_metadata": root_test_metadata,  # Root-level metadata for each test with project, author, timestamp, etc.
+    "monthly_aggregates":sorted_monthly_aggregates,
     "author_test_count": author_test_count_sorted
-})
+}
 
 output_file = "test_analysis_results.json"
 with open(output_file, 'w') as f:

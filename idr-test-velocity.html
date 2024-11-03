@@ -102,6 +102,61 @@
         .useful-links-section a:hover {
             text-decoration: underline;
         }
+
+        /* Styles for the latest tests list */
+        #latestTestsList {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .latest-test-item {
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .latest-test-item:last-child {
+            border-bottom: none;
+        }
+
+        .latest-test-item .test-name a {
+            font-weight: bold;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .latest-test-item .test-name a:hover {
+            text-decoration: underline;
+        }
+
+        .latest-test-item .class-name,
+        .latest-test-item .author-name,
+        .latest-test-item .timestamp {
+            color: #555;
+            font-size: 13px;
+        }
+
+        .latest-test-item .class-name {
+            font-style: italic;
+            margin-left: 5px;
+        }
+
+        .latest-test-item .author-name,
+        .latest-test-item .timestamp {
+            display: block;
+            margin-left: 20px;
+        }
+
+        .latest-test-item .author-name::before {
+            content: "By ";
+        }
+
+        .latest-test-item .timestamp::before {
+            content: "On ";
+        }
+
     </style>
 </head>
 <body>
@@ -121,6 +176,22 @@
     </ul>
 </div>
 <h2 id="totalTests">Loading total number of existing tests...</h2>
+<!-- Wrapper container to control overall width and alignment -->
+<div style="width: 80%; max-width: 1000px; margin: 20px auto; display: flex; align-items: flex-start; gap: 20px;">
+    <!-- Fixed-width Pie Chart Container with drop shadow -->
+    <div style="width: 320px; padding: 20px; background-color: #ffffff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px;">
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <!-- Expanding Latest Tests Section with drop shadow -->
+    <div style="flex-grow: 1; padding: 20px; background-color: #ffffff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #333;">Latest Tests Added</h3>
+        <ul id="latestTestsList">
+            <!-- Test items will be dynamically added here -->
+        </ul>
+    </div>
+</div>
+
 <div class="chart-container">
     <canvas id="testChart"></canvas>
 </div>
@@ -152,7 +223,7 @@
         </thead>
         <tbody>
         <tr id="noSelectionMessage">
-            <td colspan="4">Please select a data point from the above graph to view details.</td>
+            <td colspan="5">Please select a data point from the above graph to view details.</td>
         </tr>
         </tbody>
     </table>
