@@ -466,40 +466,57 @@ fetch('test_analysis_results.json')
             }
         });
 
-        // Create the pie chart
-        const pieCtx = document.getElementById('pieChart').getContext('2d');
-        const pieChart = new Chart(pieCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Integration Tests', 'Unit Tests'],
-                datasets: [{
-                    data: [totalIntegrationTests, totalUnitTests],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(255, 99, 132, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            font: {
-                                size: 14
-                            }
-                        }
-                    }
-                }
-            }
-        });
+
+		// Create the pie chart with the title
+		const pieCtx = document.getElementById('pieChart').getContext('2d');
+		const pieChart = new Chart(pieCtx, {
+		    type: 'pie',
+		    data: {
+		        labels: ['Integration Tests', 'Unit Tests'],
+		        datasets: [{
+		            data: [totalIntegrationTests, totalUnitTests],
+		            backgroundColor: [
+		                'rgba(75, 192, 192, 0.6)',
+		                'rgba(255, 99, 132, 0.6)'
+		            ],
+		            borderColor: [
+		                'rgba(75, 192, 192, 1)',
+		                'rgba(255, 99, 132, 1)'
+		            ],
+		            borderWidth: 1
+		        }]
+		    },
+		    options: {
+		        responsive: true,
+		        maintainAspectRatio: false,
+		        plugins: {
+		            legend: {
+		                position: 'right',
+		                labels: {
+		                    font: {
+		                        size: 14
+		                    }
+		                }
+		            },
+		            title: {
+		                display: true,
+		                text: 'Test Distribution',
+		                font: {
+		                    size: 18,
+		                    family: "'Roboto', sans-serif", // Optional: Match your page font
+		                    weight: 'bold' // Optional: Make the title bold
+		                },
+		                padding: {
+		                    top: 10,
+		                    bottom: 30
+		                },
+		                color: '#333' // Optional: Set the color of the title text
+		            }
+		        }
+		    }
+		});
+
+
 
         // Populate author test count table
         if (authorTestCountData) {
