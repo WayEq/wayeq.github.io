@@ -2,104 +2,120 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #f9f9f9;
     color: #333;
-    margin: 20px;
+    margin: 0;
+    padding: 0 20px; /* Add horizontal padding */
 }
+
 h1, h2 {
     text-align: center;
     color: #333;
 }
-.chart-container {
+
+.container {
     width: 80%;
-    margin: auto;
+    margin: 0 auto;
+}
+
+.chart-container {
     height: 450px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     background-color: #ffffff;
     padding: 20px;
 }
-.details-table, .author-table {
+
+.details-table, .author-table, .test-results-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 40px;
+    margin-top: 20px;
     background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
 }
-.details-table th, .details-table td, .author-table th, .author-table td {
+
+.details-table th, .details-table td, .author-table th, .author-table td, .test-results-table th, .test-results-table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
 }
-.details-table th, .author-table th {
+
+.details-table th, .author-table th, .test-results-table th {
     background-color: #4CAF50;
     color: white;
 }
-.details-table tr:nth-child(even), .author-table tr:nth-child(even) {
+
+.details-table tr:nth-child(even), .author-table tr:nth-child(even), .test-results-table tr:nth-child(even) {
     background-color: #f2f2f2;
 }
-.details-table tr:hover, .author-table tr:hover {
+
+.details-table tr:hover, .author-table tr:hover, .test-results-table tr:hover {
     background-color: #e1f5e1;
 }
+
 .details-section {
-    margin-top: 25px;
-    width: 80%;
-    margin: auto;
+    margin-top: 40px;
 }
+
 .highlight {
     background-color: #ffeb3b !important;
 }
+
 .filter-container {
-    margin-top: 20px;
     display: flex;
-    justify-content: space-between;
-    width: 80%;
-    margin: auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
     background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     padding: 20px;
 }
+
+.filter-container div {
+    flex: 1;
+    min-width: 200px;
+}
+
 select {
     padding: 10px;
     font-size: 16px;
     border-radius: 4px;
     border: 1px solid #ddd;
 }
+
 .useful-links-section.subtle-links {
-    width: 80%;
-    margin: auto;
-    margin-bottom: 10px;
+    margin: 20px 0;
     padding: 10px;
     background-color: #f0f0f0;
     border-radius: 8px;
 }
+
 .useful-links-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 15px;
     justify-content: center;
     list-style-type: none;
     padding-left: 0;
+    margin: 0;
 }
+
 .useful-links-section a {
     color: #555;
     text-decoration: none;
     font-size: 14px;
 }
+
 .useful-links-section a:hover {
     text-decoration: underline;
 }
 
-/* New or updated styles */
-
 .section-container {
-    width: 80%;
-    margin: 20px auto;
+    margin: 20px 0;
 }
 
 .flex-container {
     display: flex;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 20px;
 }
 
@@ -108,17 +124,18 @@ select {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     padding: 20px;
+    flex: 1;
+    min-width: 300px;
 }
 
 .pie-chart-container {
-    width: 320px;
+    max-width: 320px;
 }
 
 .latest-tests-container {
     flex-grow: 1;
 }
 
-/* Styles for the latest tests list */
 #latestTestsList {
     list-style-type: none;
     padding: 0;
@@ -164,85 +181,36 @@ select {
     margin-left: 20px;
 }
 
-.latest-test-item .author-name::before {
-    content: "By ";
-}
-
-.latest-test-item .timestamp::before {
-    content: "On ";
-}
-/* style.css */
-
-/* Style for the details section */
-.details-section {
-    margin: 40px 0;
-}
-
-/* Style for the test results table */
-.test-results-table {
-    width: 100%;
-    border-collapse: collapse;
-    vertical-align: top;
-    margin-top: 20px;
-}
-
-.test-results-table th, .test-results-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-.test-results-table td:empty {
-    background-color: #f9f9f9;
-}
-.test-results-table th {
-    background-color: #f2f2f2;
-}
-
-.test-results-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-/* Result cell styling */
-.test-results-table td.passed {
-    color: #28a745; /* Green */
-    font-weight: bold;
-}
-
-.test-results-table td.failed {
-    color: #dc3545; /* Red */
-    font-weight: bold;
-}
-
-.test-results-table td.error {
-    color: #ffc107; /* Yellow */
-    font-weight: bold;
-}
-
-.test-results-table td.skipped {
-    color: #6c757d; /* Grey */
-    font-weight: bold;
-}
-
-/* Style for the error details button */
-.test-results-table button {
-    padding: 5px 10px;
-    font-size: 0.9em;
+.toggle-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1em;
     cursor: pointer;
-    background-color: #007bff;
+    background-color: #007bff; /* Blue color */
     color: #fff;
     border: none;
     border-radius: 4px;
 }
 
-.test-results-table button:hover {
+.toggle-button:hover {
     background-color: #0056b3;
 }
 
-/* Optional: Style for the test results summary */
+.collapsible-content {
+    overflow: hidden;
+    transition: height 0.5s ease-out;
+    height: 0;
+}
+
+.collapsible-content.expanded {
+    /* Dynamically added */
+}
+
 .test-results-summary {
     margin-top: 10px;
     font-size: 1.1em;
+    text-align: center;
 }
 
 .test-results-summary span {
@@ -268,68 +236,45 @@ select {
     color: #6c757d;
     font-weight: bold;
 }
-/* Style for the filter container within test results section */
-#testResults .filter-container {
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
 
-#testResults .filter-container label {
-    margin-right: 10px;
+.test-results-table td.passed {
+    color: #28a745; /* Green */
     font-weight: bold;
 }
 
-#testResults .filter-container select {
-    padding: 5px;
+.test-results-table td.failed {
+    color: #dc3545; /* Red */
+    font-weight: bold;
 }
 
-/* Adjust the latest tests container width if necessary */
-.latest-tests-container {
-    max-width: 800px; /* Adjust as needed */
-    width: 100%;
+.test-results-table td.error {
+    color: #ffc107; /* Yellow */
+    font-weight: bold;
 }
 
-.test-results-table th:nth-child(3),
-.test-results-table td:nth-child(3) {
-    max-width: 600px; /* Adjust this value as needed */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.test-results-table td.skipped {
+    color: #6c757d; /* Grey */
+    font-weight: bold;
 }
 
-/* Centering the latest test results section */
-.centered-container {
-    margin: 0 auto;
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    width: 80%;
-}
-
-/* Style for the toggle button */
-.toggle-button {
-    margin-top: 15px;
-    padding: 10px 15px;
-    font-size: 1em;
+.test-results-table button {
+    padding: 5px 10px;
+    font-size: 0.9em;
     cursor: pointer;
-    background-color: #007bff; /* Blue color */
+    background-color: #007bff;
     color: #fff;
     border: none;
     border-radius: 4px;
 }
 
-.toggle-button:hover {
+.test-results-table button:hover {
     background-color: #0056b3;
 }
 
-/* Style for the collapsible content */
-.collapsible-content {
+.test-results-table th:nth-child(3),
+.test-results-table td:nth-child(3) {
+    max-width: 600px;
     overflow: hidden;
-    transition: height 0.5s ease-out;
-    height: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-
-.collapsible-content.expanded {
-	/* Dynamically added */
-}
-
