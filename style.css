@@ -42,7 +42,7 @@ h1, h2 {
     background-color: #e1f5e1;
 }
 .details-section {
-    margin-top: 50px;
+    margin-top: 25px;
     width: 80%;
     margin: auto;
 }
@@ -171,3 +171,165 @@ select {
 .latest-test-item .timestamp::before {
     content: "On ";
 }
+/* style.css */
+
+/* Style for the details section */
+.details-section {
+    margin: 40px 0;
+}
+
+/* Style for the test results table */
+.test-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    vertical-align: top;
+    margin-top: 20px;
+}
+
+.test-results-table th, .test-results-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.test-results-table td:empty {
+    background-color: #f9f9f9;
+}
+.test-results-table th {
+    background-color: #f2f2f2;
+}
+
+.test-results-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Result cell styling */
+.test-results-table td.passed {
+    color: #28a745; /* Green */
+    font-weight: bold;
+}
+
+.test-results-table td.failed {
+    color: #dc3545; /* Red */
+    font-weight: bold;
+}
+
+.test-results-table td.error {
+    color: #ffc107; /* Yellow */
+    font-weight: bold;
+}
+
+.test-results-table td.skipped {
+    color: #6c757d; /* Grey */
+    font-weight: bold;
+}
+
+/* Style for the error details button */
+.test-results-table button {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+}
+
+.test-results-table button:hover {
+    background-color: #0056b3;
+}
+
+/* Optional: Style for the test results summary */
+.test-results-summary {
+    margin-top: 10px;
+    font-size: 1.1em;
+}
+
+.test-results-summary span {
+    margin-right: 15px;
+}
+
+.test-results-summary .passed {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.test-results-summary .failed {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.test-results-summary .error {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.test-results-summary .skipped {
+    color: #6c757d;
+    font-weight: bold;
+}
+/* Style for the filter container within test results section */
+#testResults .filter-container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#testResults .filter-container label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+#testResults .filter-container select {
+    padding: 5px;
+}
+
+/* Adjust the latest tests container width if necessary */
+.latest-tests-container {
+    max-width: 800px; /* Adjust as needed */
+    width: 100%;
+}
+
+.test-results-table th:nth-child(3),
+.test-results-table td:nth-child(3) {
+    max-width: 600px; /* Adjust this value as needed */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Centering the latest test results section */
+.centered-container {
+    margin: 0 auto;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 80%;
+}
+
+/* Style for the toggle button */
+.toggle-button {
+    margin-top: 15px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #007bff; /* Blue color */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+}
+
+.toggle-button:hover {
+    background-color: #0056b3;
+}
+
+/* Style for the collapsible content */
+.collapsible-content {
+    overflow: hidden;
+    transition: height 0.5s ease-out;
+    height: 0;
+}
+
+.collapsible-content.expanded {
+	/* Dynamically added */
+}
+

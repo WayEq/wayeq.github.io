@@ -1,5 +1,7 @@
 // Start functions
 
+let allTestResultsData = []; // Declare at the top
+
 // Reset the details table to the default message
 function resetDetailsTable() {
     const detailsTableBody = document.getElementById('detailsTable').getElementsByTagName('tbody')[0];
@@ -161,7 +163,7 @@ function populateDetails(month, testType, details) {
             allDetails.forEach(detail => {
                 const row = document.createElement('tr');
                 const projectCell = document.createElement('td');
-                projectCell.textContent = detail.project ? detail.project : 'N/A';
+                projectCell.textContent = detail.project ? detail.project : '';
                 const classCell = document.createElement('td');
                 const classLink = document.createElement('a');
                 const coverageCell = document.createElement('td');
@@ -264,8 +266,208 @@ function populateLatestTests(testMetadata) {
         latestTestsList.appendChild(listItem);
     });
 }
+async function fetchAndDisplayTestResults() {
+    try {
+        const response = await fetch('test_results.json');
+        const testResultsData = await response.json();
+
+        // Process the test results data
+        processTestResultsData(testResultsData);
+    } catch (error) {
+        console.error('Error fetching test results:', error);
+    }
+}
 
 
+function expandCollapsibleContent() {
+    // Set the height to the scrollHeight
+    collapsibleContent.style.height = collapsibleContent.scrollHeight + 'px';
+
+    // After the transition ends, set the height to 'auto'
+    collapsibleContent.addEventListener('transitionend', function handler() {
+        collapsibleContent.style.height = 'auto';
+        collapsibleContent.removeEventListener('transitionend', handler);
+    });
+}
+
+// Function to process and display the test results data
+function processTestResultsData(testResultsData) {
+    allTestResultsData = []; // Reset the global data
+
+    // Flatten all test cases from all test suites
+    testResultsData.forEach(testSuite => {
+        if (testSuite.test_cases && Array.isArray(testSuite.test_cases)) {
+            allTestResultsData = allTestResultsData.concat(
+                testSuite.test_cases.map(testCase => {
+                    // Merge suite-level data into test case
+                    return {
+                        ...testCase,
+                        project_name: testSuite.project_name,
+                        xml_file: testSuite.xml_file,
+                        suite_metadata: testSuite.suite_metadata
+                    };
+                })
+            );
+        }
+    });
+
+    // Now, allTestResultsData is a flat array of all test cases
+
+    // Proceed to update the test results table and summary
+    updateTestResultsSummary(allTestResultsData);
+
+    // By default, show only failed and errored tests
+    const defaultFilteredData = allTestResultsData.filter(test => test.result === 'failed' || test.result === 'error');
+
+    // Populate the test results table with filtered data
+    populateTestResultsTable(defaultFilteredData);
+
+    // Populate the project filter options
+    populateTestResultsFilters(allTestResultsData);
+}
+
+// Function to populate the test results filters
+function populateTestResultsFilters(testResultsData) {
+    const projectNameFilter = document.getElementById('projectNameFilter');
+    const allProjects = new Set(testResultsData.map(test => test.project_name));
+
+    // Clear existing options (except 'All Projects')
+    projectNameFilter.innerHTML = '<option value="all">All Projects</option>';
+
+    allProjects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project;
+        option.textContent = project;
+        projectNameFilter.appendChild(option);
+    });
+}
+
+
+function updateTestResultsSummary(filteredData) {
+    const passedCount = filteredData.filter(test => test.result === 'passed').length;
+    const failedCount = filteredData.filter(test => test.result === 'failed').length;
+    const errorCount = filteredData.filter(test => test.result === 'error').length;
+    const skippedCount = filteredData.filter(test => test.result === 'skipped').length;
+
+    document.getElementById('passedCount').textContent = passedCount;
+    document.getElementById('failedCount').textContent = failedCount;
+    document.getElementById('errorCount').textContent = errorCount;
+    document.getElementById('skippedCount').textContent = skippedCount;
+}
+
+
+// Function to populate the test results table
+function populateTestResultsTable(testResultsData) {
+    const tableBody = document.querySelector('#testResultsTable tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    // Group the data by project
+    const projectGroups = groupBy(testResultsData, 'project_name');
+
+    // Iterate over each project group
+    for (const projectName in projectGroups) {
+        const projectData = projectGroups[projectName];
+
+        // Group the project data by class
+        const classGroups = groupBy(projectData, 'class_name');
+
+        const projectRowSpan = projectData.length; // Total number of tests in this project
+        let isFirstProjectRow = true; // Flag to check if it's the first row for the project
+
+        for (const className in classGroups) {
+            const classData = classGroups[className];
+            const classRowSpan = classData.length; // Number of tests in this class
+            let isFirstClassRow = true; // Flag to check if it's the first row for the class
+
+            classData.forEach((test) => {
+                const row = document.createElement('tr');
+
+                // Project Name cell
+                if (isFirstProjectRow) {
+                    const projectCell = document.createElement('td');
+                    projectCell.textContent = projectName || '';
+                    projectCell.rowSpan = projectRowSpan;
+                    projectCell.style.verticalAlign = 'top';
+                    row.appendChild(projectCell);
+                    isFirstProjectRow = false;
+                }
+
+                // Class Name cell
+                if (isFirstClassRow) {
+                    const classCell = document.createElement('td');
+                    classCell.textContent = className || '';
+                    classCell.rowSpan = classRowSpan;
+                    classCell.style.verticalAlign = 'top';
+                    row.appendChild(classCell);
+                    isFirstClassRow = false;
+                }
+
+                // Test Name
+                const testNameCell = document.createElement('td');
+                testNameCell.textContent = test.test_name || '';
+                row.appendChild(testNameCell);
+
+                // Result
+                const resultCell = document.createElement('td');
+                resultCell.textContent = test.result || '';
+                resultCell.classList.add(test.result); // Add class for styling
+                row.appendChild(resultCell);
+
+                // Error Details
+                const errorCell = document.createElement('td');
+                if (test.stack_trace) {
+                    const detailsButton = document.createElement('button');
+                    detailsButton.textContent = 'Details';
+                    detailsButton.onclick = () => {
+                        window.open(
+                            'test-result.html?project=' + encodeURIComponent(test.project_name) +
+                            '&class=' + encodeURIComponent(test.class_name) +
+                            '&test=' + encodeURIComponent(test.test_name),
+                            '_blank'
+                        );
+                    };
+                    errorCell.appendChild(detailsButton);
+                } else {
+                    errorCell.textContent = '';
+                }
+                row.appendChild(errorCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+    }
+}
+
+// Helper function to group data by a key
+function groupBy(array, key) {
+    return array.reduce((result, currentItem) => {
+        const groupKey = currentItem[key];
+        if (!result[groupKey]) {
+            result[groupKey] = [];
+        }
+        result[groupKey].push(currentItem);
+        return result;
+    }, {});
+}
+
+
+function applyTestResultsFilters() {
+    const selectedResult = document.getElementById('resultFilter').value;
+    const selectedProject = document.getElementById('projectNameFilter').value;
+
+    let filteredData = allTestResultsData;
+
+    if (selectedResult !== 'all') {
+        filteredData = filteredData.filter(test => test.result === "failed" || test.result === "error");
+    }
+
+    if (selectedProject !== 'all') {
+        filteredData = filteredData.filter(test => test.project_name === selectedProject);
+    }
+
+    // Update the summary and table with the filtered data
+    populateTestResultsTable(filteredData);
+}
 // end functions
 
 // Load the JSON data from the file
@@ -551,3 +753,41 @@ fetch('test_analysis_results.json')
 
     })
     .catch(error => console.error('Error loading JSON data:', error));
+
+document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
+document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
+fetchAndDisplayTestResults();
+
+// Get references to the toggle button and collapsible content
+const toggleDetailsButton = document.getElementById('toggleDetailsButton');
+const collapsibleContent = document.getElementById('collapsibleContent');
+
+// Flag to track if test results have been loaded
+let testResultsLoaded = false;
+
+// Add event listener to the toggle button
+toggleDetailsButton.addEventListener('click', () => {
+    if (collapsibleContent.classList.contains('expanded')) {
+        // Collapse the content
+        collapsibleContent.style.height = collapsibleContent.scrollHeight + 'px';
+        collapsibleContent.offsetHeight; // Trigger reflow
+        collapsibleContent.style.height = '0';
+        collapsibleContent.classList.remove('expanded');
+        toggleDetailsButton.textContent = 'Show Details';
+    } else {
+        collapsibleContent.classList.add('expanded');
+        toggleDetailsButton.textContent = 'Hide Details';
+
+        // Load test results data if not already loaded
+        if (!testResultsLoaded) {
+            fetchAndDisplayTestResults();
+            testResultsLoaded = true;
+
+            expandCollapsibleContent();
+        } else {
+            // Expand the content immediately if data is already loaded
+            expandCollapsibleContent();
+        }
+    }
+});
+

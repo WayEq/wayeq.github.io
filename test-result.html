@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Case Results Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-case {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 1200px;
+        }
+        .test-case h2 {
+            margin-top: 0;
+        }
+        .test-case pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 3px;
+        }
+        .test-case .label {
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        /* Styles for <details> and <summary> */
+details {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+summary {
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px;
+    background-color: #e2e2e2;
+    border-radius: 3px;
+}
+summary:hover {
+    background-color: #d0d0d0;
+}
+pre {
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin-top: 5px;
+}
+
+    </style>
+</head>
+<body>
+
+<h1>Test Case Results Viewer</h1>
+
+<div id="test-case-container"></div>
+
+<script>
+    /**
+     * Utility function to get URL parameters as an object.
+     * Example: ?project=snc-idr-test&class=ExampleTest&test=testFailure
+     * Returns: { project: "snc-idr-test", class: "ExampleTest", test: "testFailure" }
+     */
+    function getUrlParameters() {
+        const params = {};
+        const queryString = window.location.search.substring(1);
+        const pairs = queryString.split('&');
+        for (let pair of pairs) {
+            if (pair === "") continue;
+            const [key, value] = pair.split('=').map(decodeURIComponent);
+            params[key] = value;
+        }
+        return params;
+    }
+
+    /**
+     * Function to display an error message.
+     */
+    function displayError(message) {
+        const container = document.getElementById('test-case-container');
+        container.innerHTML = `<p class="error">${message}</p>`;
+    }
+    // Function to display a test case
+    function displayTestCase(testCase) {
+        var container = document.getElementById('test-case-container');
+        container.innerHTML = ''; // Clear previous content
+
+        var testCaseDiv = document.createElement('div');
+        testCaseDiv.className = 'test-case';
+
+        var title = document.createElement('h2');
+        title.textContent = testCase.class_name + '.' + testCase.test_name;
+        testCaseDiv.appendChild(title);
+
+        var projectName = document.createElement('p');
+        projectName.innerHTML = '<span class="label">Project Name:</span> ' + testCase.project_name;
+        testCaseDiv.appendChild(projectName);
+
+        var packageName = document.createElement('p');
+        packageName.innerHTML = '<span class="label">Package:</span> ' + testCase.package;
+        testCaseDiv.appendChild(packageName);
+
+        var className = document.createElement('p');
+        className.innerHTML = '<span class="label">Class Name:</span> ' + testCase.class_name;
+        testCaseDiv.appendChild(className);
+
+        var testName = document.createElement('p');
+        testName.innerHTML = '<span class="label">Test Name:</span> ' + testCase.test_name;
+        testCaseDiv.appendChild(testName);
+
+        var result = document.createElement('p');
+        result.innerHTML = '<span class="label">Result:</span> ' + testCase.result;
+        testCaseDiv.appendChild(result);
+
+        var time = document.createElement('p');
+        time.innerHTML = '<span class="label">Time:</span> ' + testCase.time + ' seconds';
+        testCaseDiv.appendChild(time);
+
+        if (testCase.stack_trace) {
+            var stackTrace = document.createElement('div');
+            stackTrace.innerHTML = '<span class="label">Stack Trace:</span>';
+            var pre = document.createElement('pre');
+            pre.textContent = testCase.stack_trace;
+            stackTrace.appendChild(pre);
+            testCaseDiv.appendChild(stackTrace);
+        }
+
+        // **Add Collapsible System Out**
+        if (testCase.system_out) {
+            var systemOutDetails = document.createElement('details');
+            var systemOutSummary = document.createElement('summary');
+            systemOutSummary.textContent = 'System Out';
+            var systemOutPre = document.createElement('pre');
+            systemOutPre.textContent = testCase.system_out;
+            systemOutDetails.appendChild(systemOutSummary);
+            systemOutDetails.appendChild(systemOutPre);
+            testCaseDiv.appendChild(systemOutDetails);
+        }
+
+        // **Add Collapsible System Err**
+        if (testCase.system_err) {
+            var systemErrDetails = document.createElement('details');
+            var systemErrSummary = document.createElement('summary');
+            systemErrSummary.textContent = 'System Err';
+            var systemErrPre = document.createElement('pre');
+            systemErrPre.textContent = testCase.system_err;
+            systemErrDetails.appendChild(systemErrSummary);
+            systemErrDetails.appendChild(systemErrPre);
+            testCaseDiv.appendChild(systemErrDetails);
+        }
+
+        container.appendChild(testCaseDiv);
+    }
+    /**
+     * Function to fetch JSON data from test_results.json
+     */
+    async function fetchTestResults() {
+        try {
+            const response = await fetch('test_results.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            displayError(`Failed to load test results: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Function to find a test case based on parameters.
+     */
+    function findTestCase(testResults, params) {
+        const { project, class: classNameParam, test } = params;
+
+        if (!project || !classNameParam || !test) {
+            displayError('Missing URL parameters. Please provide "project", "class", and "test" parameters.');
+            return null;
+        }
+
+        for (let suite of testResults) {
+            if (suite.project_name !== project) continue;
+            for (let testCase of suite.test_cases) {
+                if (testCase.class_name === classNameParam && testCase.test_name === test) {
+                    return testCase;
+                }
+            }
+        }
+
+        displayError('Test case not found. Please check the provided parameters.');
+        return null;
+    }
+
+    /**
+     * Initialization function to be called on page load.
+     */
+    async function init() {
+        const params = getUrlParameters();
+        const testResults = await fetchTestResults();
+        if (!testResults) return;
+
+        const testCase = findTestCase(testResults, params);
+        if (testCase) {
+            displayTestCase(testCase);
+        }
+    }
+
+    // Run the init function when the page loads
+    window.onload = init;
+</script>
+
+</body>
+</html>
