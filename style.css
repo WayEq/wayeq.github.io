@@ -51,7 +51,8 @@ h1, h2 {
 }
 
 .details-section {
-    margin-top: 40px;
+    width: 100%;
+    margin: 20px 0;
 }
 
 .highlight {
@@ -120,6 +121,8 @@ select {
 }
 
 .widget-container {
+
+    width: 100%;
     background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -277,4 +280,154 @@ select {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.test-results-summary-container {
+    display: flex;
+    justify-content: space-evenly; /* Distribute space evenly between items */
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    width: 100%;
+    gap: 40px; /* Adjust the gap as needed */
+
+}
+
+.test-results-summary {
+    display: flex;
+    flex: 1 1 300px;
+    flex-direction: column;
+    margin-right: 0;
+    align-items: center; /* Center items horizontally */
+}
+
+/* Style for the pie chart container */
+.test-results-pie-chart {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto; /* Center the pie chart */
+    padding: 20px 0;
+    height: 300px;
+}
+
+/* Adjust the summary counts */
+.test-results-summary span {
+    margin-bottom: 10px; /* Increase spacing between counts */
+    font-size: 1.2em; /* Slightly increase font size */
+}
+
+.test-results-summary .passed {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.test-results-summary .failed {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.test-results-summary .error {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.test-results-summary .skipped {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+/* Styles for the summary cards container */
+.test-results-summary-cards {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    gap: 20px;
+}
+
+/* Styles for individual summary cards */
+.summary-card {
+    flex: 1 1 calc(25% - 20px); /* Four cards in a row with gaps */
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card .card-count {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.summary-card .card-label {
+    font-size: 1.2em;
+    color: #666;
+}
+
+/* Specific styles for each result type */
+.passed-card {
+    background-color: #e6f4ea;
+}
+
+.passed-card .card-count {
+    color: #28a745;
+}
+
+.failed-card {
+    background-color: #f8d7da;
+}
+
+.failed-card .card-count {
+    color: #dc3545;
+}
+
+.error-card {
+    background-color: #fff3cd;
+}
+
+.error-card .card-count {
+    color: #ffc107;
+}
+
+.skipped-card {
+    background-color: #e2e3e5;
+}
+
+.skipped-card .card-count {
+    color: #6c757d;
+}
+
+/* Style for the pie chart container */
+.test-results-pie-chart {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto; /* Center the pie chart */
+    padding: 20px 0;
+    height: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .summary-card {
+        flex: 1 1 calc(50% - 20px); /* Two cards per row on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-card {
+        flex: 1 1 100%; /* One card per row on very small screens */
+    }
+}
+
+.test-metadata {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1em;
+    color: #555;
+}
+
+.test-metadata p {
+    margin: 5px 0;
 }

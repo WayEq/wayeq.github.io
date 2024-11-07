@@ -1,6 +1,7 @@
 import os
 import json
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 # Base directory containing all project repositories
 TEST_REPO = '/Users/aaron.shoal/dev/glide-test'
@@ -17,6 +18,9 @@ PROJECTS = [
 
 # Output JSON file path
 OUTPUT_JSON = 'test_results.json'
+
+# Path to the execution metadata JSON file
+EXECUTION_METADATA_JSON = '/tmp/zen/execution_metadata.json'
 
 def parse_failsafe_xml(xml_file, project_name):
     """
@@ -87,7 +91,7 @@ def parse_failsafe_xml(xml_file, project_name):
         # Include system_out and system_err only if the test case failed or errored
         if result in ['failed', 'error']:
             case_system_out_elem = testcase.find('system-out')
-            case_system_err_elem = testcase.find('system-err')  # Corrected element name
+            case_system_err_elem = testcase.find('system-err')
 
             case_system_out = case_system_out_elem.text.strip() if case_system_out_elem is not None and case_system_out_elem.text else ''
             case_system_err = case_system_err_elem.text.strip() if case_system_err_elem is not None and case_system_err_elem.text else ''
@@ -100,19 +104,18 @@ def parse_failsafe_xml(xml_file, project_name):
 
         test_results.append(test_case_dict)
 
-    # Optionally, extract test suite metadata
-    suite_metadata = {
-        'tests': root.attrib.get('tests', '0'),
-        'failures': root.attrib.get('failures', '0'),
-        'errors': root.attrib.get('errors', '0'),
-        'skipped': root.attrib.get('skipped', '0'),
-        'time': root.attrib.get('time', '0')
-    }
+    # Optionally, extract test suite metadata (not used in this version)
+    # suite_metadata = {
+    #     'tests': root.attrib.get('tests', '0'),
+    #     'failures': root.attrib.get('failures', '0'),
+    #     'errors': root.attrib.get('errors', '0'),
+    #     'skipped': root.attrib.get('skipped', '0'),
+    #     'time': root.attrib.get('time', '0')
+    # }
 
     return {
         'project_name': project_name,
         'xml_file': xml_file,
-        'suite_metadata': suite_metadata,
         'test_cases': test_results
     }
 
@@ -120,7 +123,7 @@ def main():
     """
     Main function to process multiple projects and aggregate test results.
     """
-    all_test_results = []
+    all_test_cases = []  # Collect all test cases directly
 
     for project in PROJECTS:
         # Construct the path to the Failsafe XML reports for the current project
@@ -138,16 +141,49 @@ def main():
                 # Parse the XML file and get test results
                 parsed_result = parse_failsafe_xml(xml_file, project)
                 if parsed_result:
-                    all_test_results.append(parsed_result)
+                    # Collect test cases
+                    all_test_cases.extend(parsed_result['test_cases'])
 
-    if not all_test_results:
+    if not all_test_cases:
         print("No test results found. Please check the project directories and XML files.")
         return
+
+    # Read execution metadata from /tmp/zen/execution_metadata.json
+    try:
+        with open(EXECUTION_METADATA_JSON, 'r') as f:
+            execution_metadata = json.load(f)
+    except Exception as e:
+        print(f"Error reading execution metadata: {e}")
+        execution_metadata = {
+            'execution_end_time': '',
+            'test_branch': ''
+        }
+
+    # Format execution_time
+    execution_end_time = execution_metadata.get('execution_end_time', '')
+    if execution_end_time:
+        # Parse ISO 8601 format
+        try:
+            execution_time_dt = datetime.strptime(execution_end_time, '%Y-%m-%dT%H:%M:%SZ')
+            # Format to desired string format
+            execution_time_str = execution_time_dt.strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError as e:
+            print(f"Error parsing execution_end_time: {e}")
+            execution_time_str = execution_end_time  # Use as is
+    else:
+        execution_time_str = ''
+
+    # Prepare the final output JSON structure
+    output_data = {
+        'execution_time': execution_time_str,
+        'test_branch': execution_metadata.get('test_branch', ''),
+        'test_results': all_test_cases
+    }
 
     # Write the aggregated test results to the JSON file
     try:
         with open(OUTPUT_JSON, 'w') as f:
-            json.dump(all_test_results, f, indent=4)
+            json.dump(output_data, f, indent=4)
         print(f"Test results have been written to {OUTPUT_JSON}")
     except Exception as e:
         print(f"Error writing to JSON file {OUTPUT_JSON}: {e}")

@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Analysis Results</title>
@@ -26,61 +28,74 @@
                target="_blank">Classes Without Tests</a></li>
     </ul>
 </div>
-<!-- New Section for Latest Test Results -->
-<div class="centered-container">
     <!-- Latest Test Results Section -->
-    <div class="details-section" id="testResults">
-        <div class="centered-container">
-
-            <div class="widget-container">
-                <h2>Latest Test Results</h2>
-
-                <!-- Test Results Summary -->
-                <div class="test-results-summary centered-container">
-                    <span class="passed">Passed: <span id="passedCount">0</span></span>
-                    <span class="failed">Failed: <span id="failedCount">0</span></span>
-                    <span class="error">Error: <span id="errorCount">0</span></span>
-                    <span class="skipped">Skipped: <span id="skippedCount">0</span></span>
-                </div>
-
-                <!-- Toggle Button -->
-                <button id="toggleDetailsButton" class="collapsible toggle-button">Show Details</button>
-
-                <!-- Collapsible Content -->
-                <div id="collapsibleContent" class="collapsible-content">
-                    <!-- Filters for Test Results -->
-                    <div class="filter-container">
-                        <label for="resultFilter">Show Tests:</label>
-                        <select id="resultFilter">
-                            <option value="failed">Failed Tests</option>
-                            <option value="all">All Tests</option>
-                        </select>
-                        <label for="projectNameFilter">Filter by Project:</label>
-                        <select id="projectNameFilter">
-                            <option value="all">All Projects</option>
-                            <!-- Project names will be dynamically populated -->
-                        </select>
-                    </div>
-                    <!-- Test Results Table -->
-                    <table class="test-results-table" id="testResultsTable">
-                        <thead>
-                        <tr>
-                            <th>Project Name</th>
-                            <th>Class Name</th>
-                            <th>Test Name</th>
-                            <th>Result</th>
-                            <th>Error Details</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Test results will be dynamically populated here -->
-                        </tbody>
-                    </table>
-                </div>
+<!-- Latest Test Results Section -->
+<div class="details-section" id="testResults">
+    <div class="widget-container">
+        <h2>Latest Test Results</h2>
+        <div id="testMetadata" class="test-metadata">
+            <!-- Execution Time and Test Branch will be displayed here -->
+        </div>
+        <!-- Test Results Summary Cards -->
+        <div class="test-results-summary-cards">
+            <div class="summary-card passed-card">
+                <div class="card-count" id="passedCount">0</div>
+                <div class="card-label">Passed</div>
+            </div>
+            <div class="summary-card failed-card">
+                <div class="card-count" id="failedCount">0</div>
+                <div class="card-label">Failed</div>
+            </div>
+            <div class="summary-card error-card">
+                <div class="card-count" id="errorCount">0</div>
+                <div class="card-label">Error</div>
+            </div>
+            <div class="summary-card skipped-card">
+                <div class="card-count" id="skippedCount">0</div>
+                <div class="card-label">Skipped</div>
             </div>
         </div>
-    </div>
 
+        <!-- Pie Chart Container -->
+        <div class="test-results-pie-chart">
+            <canvas id="testResultsPieChart"></canvas>
+        </div>
+
+        <!-- Toggle Button -->
+        <button id="toggleDetailsButton" class="collapsible toggle-button">Show Details</button>
+
+        <!-- Collapsible Content -->
+        <div id="collapsibleContent" class="collapsible-content">
+            <!-- Filters for Test Results -->
+            <div class="filter-container">
+                <label for="resultFilter">Show Tests:</label>
+                <select id="resultFilter">
+                    <option value="failed">Failed Tests</option>
+                    <option value="all">All Tests</option>
+                </select>
+                <label for="projectNameFilter">Filter by Project:</label>
+                <select id="projectNameFilter">
+                    <option value="all">All Projects</option>
+                    <!-- Project names will be dynamically populated -->
+                </select>
+            </div>
+            <!-- Test Results Table -->
+            <table class="test-results-table" id="testResultsTable">
+                <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Class Name</th>
+                    <th>Test Name</th>
+                    <th>Result</th>
+                    <th>Error Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Test results will be dynamically populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <h2 id="totalTests">Loading total number of existing tests...</h2>

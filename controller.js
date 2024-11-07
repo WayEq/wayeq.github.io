@@ -1,6 +1,49 @@
-// Start functions
 
 let allTestResultsData = []; // Declare at the top
+let testResultsPieChart;
+
+// Start functions
+
+function createTestResultsPieChart(passed, failed, error, skipped) {
+    const ctx = document.getElementById('testResultsPieChart').getContext('2d');
+
+    if (testResultsPieChart) {
+        // If the chart already exists, destroy it before creating a new one
+        testResultsPieChart.destroy();
+    }
+
+    testResultsPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Passed', 'Failed', 'Error', 'Skipped'],
+            datasets: [{
+                data: [passed, failed, error, skipped],
+                backgroundColor: [
+                    '#28a745', // Passed - Green
+                    '#dc3545', // Failed - Red
+                    '#ffc107', // Error - Yellow
+                    '#6c757d'  // Skipped - Gray
+                ],
+                borderColor: '#fff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
 // Reset the details table to the default message
 function resetDetailsTable() {
@@ -270,9 +313,16 @@ async function fetchAndDisplayTestResults() {
     try {
         const response = await fetch('test_results.json');
         const testResultsData = await response.json();
+        // Extract metadata
+        const executionTime = testResultsData.execution_time;
+        const testBranch = testResultsData.test_branch;
+        const testResults = testResultsData.test_results; // The array of test results
 
         // Process the test results data
-        processTestResultsData(testResultsData);
+        processTestResultsData(testResults);
+
+        // Display metadata in the UI
+        displayTestMetadata(executionTime, testBranch);
     } catch (error) {
         console.error('Error fetching test results:', error);
     }
@@ -292,7 +342,7 @@ function expandCollapsibleContent() {
 
 // Function to process and display the test results data
 function processTestResultsData(testResultsData) {
-    allTestResultsData = []; // Reset the global data
+    allTestResultsData = testResultsData; // Store globally
 
     // Flatten all test cases from all test suites
     testResultsData.forEach(testSuite => {
@@ -311,8 +361,6 @@ function processTestResultsData(testResultsData) {
         }
     });
 
-    // Now, allTestResultsData is a flat array of all test cases
-
     // Proceed to update the test results table and summary
     updateTestResultsSummary(allTestResultsData);
 
@@ -325,7 +373,20 @@ function processTestResultsData(testResultsData) {
     // Populate the project filter options
     populateTestResultsFilters(allTestResultsData);
 }
+function displayTestMetadata(executionTime, testBranch) {
+    // Get the container where metadata will be displayed
+    const metadataContainer = document.getElementById('testMetadata');
 
+    // Format the execution time (optional)
+    const formattedExecutionTime = new Date(executionTime).toLocaleString();
+
+    // Update the content
+    metadataContainer.innerHTML = `
+<p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
+<p><strong><i class="fas fa-code-branch"></i> Test Branch:</strong> ${testBranch}</p>
+
+    `;
+}
 // Function to populate the test results filters
 function populateTestResultsFilters(testResultsData) {
     const projectNameFilter = document.getElementById('projectNameFilter');
@@ -353,6 +414,10 @@ function updateTestResultsSummary(filteredData) {
     document.getElementById('failedCount').textContent = failedCount;
     document.getElementById('errorCount').textContent = errorCount;
     document.getElementById('skippedCount').textContent = skippedCount;
+
+     // Create or update the pie chart
+     createTestResultsPieChart(passedCount, failedCount, errorCount, skippedCount);
+
 }
 
 
@@ -765,6 +830,9 @@ const collapsibleContent = document.getElementById('collapsibleContent');
 // Flag to track if test results have been loaded
 let testResultsLoaded = false;
 
+fetchAndDisplayTestResults();
+testResultsLoaded = true;
+
 // Add event listener to the toggle button
 toggleDetailsButton.addEventListener('click', () => {
     if (collapsibleContent.classList.contains('expanded')) {
@@ -777,17 +845,7 @@ toggleDetailsButton.addEventListener('click', () => {
     } else {
         collapsibleContent.classList.add('expanded');
         toggleDetailsButton.textContent = 'Hide Details';
-
-        // Load test results data if not already loaded
-        if (!testResultsLoaded) {
-            fetchAndDisplayTestResults();
-            testResultsLoaded = true;
-
-            expandCollapsibleContent();
-        } else {
-            // Expand the content immediately if data is already loaded
-            expandCollapsibleContent();
-        }
+        expandCollapsibleContent();
     }
 });
 

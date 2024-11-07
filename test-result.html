@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Case Results Viewer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,7 +56,6 @@ pre {
 </head>
 <body>
 
-<h1>Test Case Results Viewer</h1>
 
 <div id="test-case-container"></div>
 
@@ -95,9 +93,8 @@ pre {
         testCaseDiv.className = 'test-case';
 
         var title = document.createElement('h2');
-        title.textContent = testCase.class_name + '.' + testCase.test_name;
-        testCaseDiv.appendChild(title);
-
+        title.textContent = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');        testCaseDiv.appendChild(title);
+        document.title = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');
         var projectName = document.createElement('p');
         projectName.innerHTML = '<span class="label">Project Name:</span> ' + testCase.project_name;
         testCaseDiv.appendChild(projectName);
@@ -111,8 +108,10 @@ pre {
         testCaseDiv.appendChild(className);
 
         var testName = document.createElement('p');
-        testName.innerHTML = '<span class="label">Test Name:</span> ' + testCase.test_name;
-        testCaseDiv.appendChild(testName);
+        if (testCase.test_name) {
+            testName.innerHTML = '<span class="label">Test Name:</span> ' + testCase.test_name;
+            testCaseDiv.appendChild(testName);
+        }
 
         var result = document.createElement('p');
         result.innerHTML = '<span class="label">Result:</span> ' + testCase.result;
@@ -147,7 +146,7 @@ pre {
         if (testCase.system_err) {
             var systemErrDetails = document.createElement('details');
             var systemErrSummary = document.createElement('summary');
-            systemErrSummary.textContent = 'System Err';
+            systemErrSummary.textContent = 'System Error';
             var systemErrPre = document.createElement('pre');
             systemErrPre.textContent = testCase.system_err;
             systemErrDetails.appendChild(systemErrSummary);
@@ -180,17 +179,19 @@ pre {
     function findTestCase(testResults, params) {
         const { project, class: classNameParam, test } = params;
 
-        if (!project || !classNameParam || !test) {
+        if (!project || !classNameParam) {
             displayError('Missing URL parameters. Please provide "project", "class", and "test" parameters.');
             return null;
         }
 
-        for (let suite of testResults) {
-            if (suite.project_name !== project) continue;
-            for (let testCase of suite.test_cases) {
-                if (testCase.class_name === classNameParam && testCase.test_name === test) {
-                    return testCase;
-                }
+        resolved_test = test;
+        if (!test) {
+            resolved_test="";
+        }
+        for (let testCase of testResults.test_results) {
+            if (testCase.project_name !== project) continue;
+            if (testCase.class_name === classNameParam && testCase.test_name === resolved_test) {
+                return testCase;
             }
         }
 
