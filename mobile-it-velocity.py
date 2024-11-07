@@ -30,7 +30,8 @@ synonyms = {
 unit_projects = [
     "mobilesky-android-app",
     "nowsdk-android",
-    "snowchat-android"
+    "snowchat-android",
+    "snowchat-android-sdk"
 ]
 
 # Regex pattern to extract date and author from git blame output
@@ -51,12 +52,19 @@ java_method_pattern = re.compile(r'''
     \s*\{                                 # Opening brace
 ''', re.VERBOSE)
 
+import re
+
+
+# Simplified Regex Pattern
 kotlin_method_pattern = re.compile(r'''
-    ^\s*          # Start of line, optional whitespace
-    fun\s+        # 'fun' keyword followed by whitespace
-    (\w+)\s*      # Method name (captured group 1)
-    \(\s*\)       # Empty parameter list '()' with optional whitespace
+    ^\s*                   # Start of line, optional whitespace
+    fun\s+                 # 'fun' keyword followed by at least one space
+    `?                     # Optional opening backtick
+    ([^`()]+)              # Capture group 1: method name (any chars except backtick or '(')
+    `?                     # Optional closing backtick
+    \s*\(                  # Optional whitespace followed by '('
 ''', re.VERBOSE | re.MULTILINE)
+
 
 # Regex pattern to extract package name from Java file
 package_pattern = re.compile(r"^\s*package\s+([\w.]+);")
@@ -88,7 +96,6 @@ def normalize_author_name(author):
 # Function to process a single file
 def process_file(repo_dir, file, project_name, test_type):
     file = os.path.expanduser(file)
-    print(f"Processing file: {file}")
     if not os.path.exists(file):
         return
 
@@ -168,7 +175,8 @@ def process_file(repo_dir, file, project_name, test_type):
                     method_match = kotlin_method_pattern.match(method_declaration)
                     if method_match:
                         test_name = method_match.group(1)  # Extracted method name
-                        print(f"Found Kotlin method: {test_name}")
+                        if test_name is None:
+                            print(f"Found Kotlin method: {test_name} in: {file} in line {lines[i]} with declaration {method_declaration}")
                         found_method = True
                         break
 
