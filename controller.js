@@ -1,8 +1,53 @@
 
 let allTestResultsData = []; // Declare at the top
+let previousTestResultsData = [];
 let testResultsPieChart;
-
+let testRunData = [];
 // Start functions
+
+// Function to fetch and populate test runs
+async function fetchTestRuns() {
+    try {
+        const response = await fetch('test_results/test_results_index.json');
+        const testRuns = await response.json();
+        testRunData = testRuns;
+
+        // Populate the test run selection dropdown
+        populateTestRunSelection(testRuns);
+
+        // Load the latest test run by default
+        if (testRuns.length > 0) {
+            const latestTestRun = testRuns[testRuns.length - 1];
+            fetchAndDisplayTestResults(latestTestRun.filename);
+        }
+    } catch (error) {
+        console.error('Error fetching test runs:', error);
+    }
+}
+
+function populateTestRunSelection(testRuns) {
+    const testRunSelect = document.getElementById('testRunSelect');
+    testRunSelect.innerHTML = ''; // Clear existing options
+
+    // Create an option for each test run
+    testRuns.forEach((testRun, index) => {
+        const option = document.createElement('option');
+        option.value = testRun.filename;
+        option.textContent = `${testRun.execution_time} (${testRun.test_branch})`;
+        testRunSelect.appendChild(option);
+    });
+
+    // Set the selected option to the latest test run
+    if (testRuns.length > 0) {
+        testRunSelect.selectedIndex = testRuns.length - 1;
+    }
+
+    // Add an event listener for when the user selects a different test run
+    testRunSelect.addEventListener('change', (event) => {
+        const selectedFilename = event.target.value;
+        fetchAndDisplayTestResults(selectedFilename);
+    });
+}
 
 function createTestResultsPieChart(passed, failed, error, skipped) {
     const ctx = document.getElementById('testResultsPieChart').getContext('2d');
@@ -309,10 +354,30 @@ function populateLatestTests(testMetadata) {
         latestTestsList.appendChild(listItem);
     });
 }
-async function fetchAndDisplayTestResults() {
+async function fetchAndDisplayTestResults(filename) {
     try {
-        const response = await fetch('test_results.json');
+        // Find the index of the selected test run
+        const selectedRunIndex = testRunData.findIndex(run => run.filename === filename);
+
+        // Identify the previous test run (if available)
+        let previousRunFilename = null;
+        if (selectedRunIndex > 0) {
+            previousRunFilename = testRunData[selectedRunIndex - 1].filename;
+        }
+
+        // Fetch the current test run data
+        const response = await fetch(`test_results/${filename}`);
         const testResultsData = await response.json();
+
+        // Fetch the previous test run data if available
+        if (previousRunFilename) {
+            const prevResponse = await fetch(`test_results/${previousRunFilename}`);
+            const prevTestResultsData = await prevResponse.json();
+            previousTestResultsData = prevTestResultsData.test_results;
+        } else {
+            previousTestResultsData = []; // No previous data available
+        }
+
         // Extract metadata
         const executionTime = testResultsData.execution_time;
         const testBranch = testResultsData.test_branch;
@@ -329,6 +394,7 @@ async function fetchAndDisplayTestResults() {
 }
 
 
+
 function expandCollapsibleContent() {
     // Set the height to the scrollHeight
     collapsibleContent.style.height = collapsibleContent.scrollHeight + 'px';
@@ -342,27 +408,19 @@ function expandCollapsibleContent() {
 
 // Function to process and display the test results data
 function processTestResultsData(testResultsData) {
-    allTestResultsData = testResultsData; // Store globally
+    allTestResultsData = testResultsData; // Store current test run data
 
-    // Flatten all test cases from all test suites
-    testResultsData.forEach(testSuite => {
-        if (testSuite.test_cases && Array.isArray(testSuite.test_cases)) {
-            allTestResultsData = allTestResultsData.concat(
-                testSuite.test_cases.map(testCase => {
-                    // Merge suite-level data into test case
-                    return {
-                        ...testCase,
-                        project_name: testSuite.project_name,
-                        xml_file: testSuite.xml_file,
-                        suite_metadata: testSuite.suite_metadata
-                    };
-                })
-            );
-        }
-    });
+    // Calculate counts for current test run
+    const currentCounts = calculateTestCounts(allTestResultsData);
 
-    // Proceed to update the test results table and summary
-    updateTestResultsSummary(allTestResultsData);
+    // Calculate counts for previous test run (if available)
+    let previousCounts = null;
+    if (previousTestResultsData && previousTestResultsData.length > 0) {
+        previousCounts = calculateTestCounts(previousTestResultsData);
+    }
+
+    // Proceed to update the test results summary with counts and deltas
+    updateTestResultsSummary(currentCounts, previousCounts);
 
     // By default, show only failed and errored tests
     const defaultFilteredData = allTestResultsData.filter(test => test.result === 'failed' || test.result === 'error');
@@ -373,8 +431,17 @@ function processTestResultsData(testResultsData) {
     // Populate the project filter options
     populateTestResultsFilters(allTestResultsData);
 }
+
+function calculateTestCounts(testData) {
+    return {
+        passed: testData.filter(test => test.result === 'passed').length,
+        failed: testData.filter(test => test.result === 'failed').length,
+        error: testData.filter(test => test.result === 'error').length,
+        skipped: testData.filter(test => test.result === 'skipped').length
+    };
+}
+
 function displayTestMetadata(executionTime, testBranch) {
-    // Get the container where metadata will be displayed
     const metadataContainer = document.getElementById('testMetadata');
 
     // Format the execution time (optional)
@@ -382,9 +449,8 @@ function displayTestMetadata(executionTime, testBranch) {
 
     // Update the content
     metadataContainer.innerHTML = `
-<p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
-<p><strong><i class="fas fa-code-branch"></i> Test Branch:</strong> ${testBranch}</p>
-
+        <p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
+        <p><strong><i class="fas fa-code-branch"></i> Test Branch:</strong> ${testBranch}</p>
     `;
 }
 // Function to populate the test results filters
@@ -403,21 +469,39 @@ function populateTestResultsFilters(testResultsData) {
     });
 }
 
+function updateTestResultsSummary(currentCounts, previousCounts) {
+    // Update counts
+    document.getElementById('passedCount').innerHTML = formatCountWithDelta(currentCounts.passed, previousCounts ? previousCounts.passed : null);
+    document.getElementById('failedCount').innerHTML = formatCountWithDelta(currentCounts.failed, previousCounts ? previousCounts.failed : null);
+    document.getElementById('errorCount').innerHTML = formatCountWithDelta(currentCounts.error, previousCounts ? previousCounts.error : null);
+    document.getElementById('skippedCount').innerHTML = formatCountWithDelta(currentCounts.skipped, previousCounts ? previousCounts.skipped : null);
 
-function updateTestResultsSummary(filteredData) {
-    const passedCount = filteredData.filter(test => test.result === 'passed').length;
-    const failedCount = filteredData.filter(test => test.result === 'failed').length;
-    const errorCount = filteredData.filter(test => test.result === 'error').length;
-    const skippedCount = filteredData.filter(test => test.result === 'skipped').length;
+    // Create or update the pie chart
+    createTestResultsPieChart(currentCounts.passed, currentCounts.failed, currentCounts.error, currentCounts.skipped);
+}
 
-    document.getElementById('passedCount').textContent = passedCount;
-    document.getElementById('failedCount').textContent = failedCount;
-    document.getElementById('errorCount').textContent = errorCount;
-    document.getElementById('skippedCount').textContent = skippedCount;
+function formatCountWithDelta(currentCount, previousCount) {
+    if (previousCount === null) {
+        // No previous data, just display the current count
+        return `${currentCount}`;
+    }
 
-     // Create or update the pie chart
-     createTestResultsPieChart(passedCount, failedCount, errorCount, skippedCount);
+    const delta = currentCount - previousCount;
+    let deltaSymbol = '';
+    let deltaClass = '';
 
+    if (delta > 0) {
+        deltaSymbol = `&uarr; ${delta}`;
+        deltaClass = 'delta-up';
+    } else if (delta < 0) {
+        deltaSymbol = `&darr; ${Math.abs(delta)}`;
+        deltaClass = 'delta-down';
+    } else {
+        deltaSymbol = `&ndash; 0`;
+        deltaClass = 'delta-same';
+    }
+
+    return `${currentCount} <span class="delta ${deltaClass}">${deltaSymbol}</span>`;
 }
 
 
@@ -821,7 +905,12 @@ fetch('test_analysis_results.json')
 
 document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
 document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
-fetchAndDisplayTestResults();
+
+// Call fetchTestRuns when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    fetchTestRuns();
+});
+
 
 // Get references to the toggle button and collapsible content
 const toggleDetailsButton = document.getElementById('toggleDetailsButton');
@@ -830,7 +919,6 @@ const collapsibleContent = document.getElementById('collapsibleContent');
 // Flag to track if test results have been loaded
 let testResultsLoaded = false;
 
-fetchAndDisplayTestResults();
 testResultsLoaded = true;
 
 // Add event listener to the toggle button

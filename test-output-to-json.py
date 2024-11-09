@@ -1,3 +1,5 @@
+#!/opt/homebrew/bin/python3
+
 import os
 import json
 import xml.etree.ElementTree as ET
@@ -16,11 +18,17 @@ PROJECTS = [
     'idr-test-frontend'
 ]
 
-# Output JSON file path
-OUTPUT_JSON = 'test_results.json'
+# Output directory for JSON files
+OUTPUT_DIR = 'test_results'
+
+# Ensure the output directory exists
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Path to the execution metadata JSON file
 EXECUTION_METADATA_JSON = '/tmp/zen/execution_metadata.json'
+
+# Index file to keep track of test runs
+INDEX_FILE = os.path.join(OUTPUT_DIR, 'test_results_index.json')
 
 def parse_failsafe_xml(xml_file, project_name):
     """
@@ -119,11 +127,33 @@ def parse_failsafe_xml(xml_file, project_name):
         'test_cases': test_results
     }
 
+def update_index_file(output_filename, execution_time, test_branch):
+    index_data = []
+    if os.path.exists(INDEX_FILE):
+        try:
+            with open(INDEX_FILE, 'r') as f:
+                index_data = json.load(f)
+        except Exception as e:
+            print(f"Error reading index file {INDEX_FILE}: {e}")
+
+    # Add the new entry to the index
+    index_data.append({
+        "filename": output_filename,
+        "execution_time": execution_time,
+        "test_branch": test_branch
+    })
+
+    # Save the updated index
+    try:
+        with open(INDEX_FILE, 'w') as f:
+            json.dump(index_data, f, indent=4)
+        print(f"Index file {INDEX_FILE} updated.")
+    except Exception as e:
+        print(f"Error writing to index file {INDEX_FILE}: {e}")
+
 def main():
-    """
-    Main function to process multiple projects and aggregate test results.
-    """
-    all_test_cases = []  # Collect all test cases directly
+    # Collect all test cases directly
+    all_test_cases = []
 
     for project in PROJECTS:
         # Construct the path to the Failsafe XML reports for the current project
@@ -171,22 +201,32 @@ def main():
             print(f"Error parsing execution_end_time: {e}")
             execution_time_str = execution_end_time  # Use as is
     else:
-        execution_time_str = ''
+        execution_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    test_branch = execution_metadata.get('test_branch', '')
 
     # Prepare the final output JSON structure
     output_data = {
         'execution_time': execution_time_str,
-        'test_branch': execution_metadata.get('test_branch', ''),
+        'test_branch': test_branch,
         'test_results': all_test_cases
     }
 
+    # Generate timestamped filename
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_filename = f"test_results_{timestamp}.json"
+    output_filepath = os.path.join(OUTPUT_DIR, output_filename)
+
     # Write the aggregated test results to the JSON file
     try:
-        with open(OUTPUT_JSON, 'w') as f:
+        with open(output_filepath, 'w') as f:
             json.dump(output_data, f, indent=4)
-        print(f"Test results have been written to {OUTPUT_JSON}")
+        print(f"Test results have been written to {output_filepath}")
     except Exception as e:
-        print(f"Error writing to JSON file {OUTPUT_JSON}: {e}")
+        print(f"Error writing to JSON file {output_filepath}: {e}")
+
+    # Update the index file
+    update_index_file(output_filename, execution_time_str, test_branch)
 
 if __name__ == '__main__':
     main()

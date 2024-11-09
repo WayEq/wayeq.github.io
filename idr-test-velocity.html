@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline"></script>
 </head>
 <body>
-<h1>IDR Test Velocity</h1>
+<h1>Automated Testing Pulse</h1>
 <div class="useful-links-section subtle-links">
     <ul class="useful-links-row">
         <li><a href="https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2Fcom%2Fglide"
@@ -28,11 +28,19 @@
                target="_blank">Classes Without Tests</a></li>
     </ul>
 </div>
+
+<!-- Test Run Selection -->
+<div class="test-run-selection">
+    <label for="testRunSelect">Select Test Run:</label>
+    <select id="testRunSelect">
+        <!-- Options will be populated dynamically -->
+    </select>
+</div>
     <!-- Latest Test Results Section -->
 <!-- Latest Test Results Section -->
 <div class="details-section" id="testResults">
     <div class="widget-container">
-        <h2>Latest Test Results</h2>
+        <h2>Integration Test Results</h2>
         <div id="testMetadata" class="test-metadata">
             <!-- Execution Time and Test Branch will be displayed here -->
         </div>

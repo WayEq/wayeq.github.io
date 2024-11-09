@@ -431,3 +431,21 @@ select {
 .test-metadata p {
     margin: 5px 0;
 }
+
+.delta {
+    font-size: 0.5em;
+    margin-left: 5px;
+}
+
+.delta-up {
+    color: green;
+}
+
+.delta-down {
+    color: red;
+}
+
+.delta-same {
+    color: gray;
+}
+
