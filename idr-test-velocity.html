@@ -64,11 +64,16 @@
             </div>
         </div>
 
-        <!-- Pie Chart Container -->
-        <div class="test-results-pie-chart">
-            <canvas id="testResultsPieChart"></canvas>
+        <div class="charts-container">
+            <!-- Pie Chart Container -->
+            <div class="chart-item pie-chart-item">
+                <canvas id="testResultsPieChart" aria-label="Pie chart showing test distribution" role="img"></canvas>
+            </div>
+            <!-- Trend Chart Container -->
+            <div class="chart-item trend-chart-item">
+                <canvas id="trendChart" aria-label="Line chart showing test trends over last 5 runs" role="img"></canvas>
+            </div>
         </div>
-
         <!-- Toggle Button -->
         <button id="toggleDetailsButton" class="collapsible toggle-button">Show Details</button>
 
@@ -105,6 +110,7 @@
         </div>
     </div>
 </div>
+
 
 <h2 id="totalTests">Loading total number of existing tests...</h2>
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>TestPulse - Test Case Details</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,32 +31,57 @@
             font-weight: bold;
         }
         /* Styles for <details> and <summary> */
-details {
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-summary {
-    font-weight: bold;
-    cursor: pointer;
-    padding: 5px;
-    background-color: #e2e2e2;
-    border-radius: 3px;
-}
-summary:hover {
-    background-color: #d0d0d0;
-}
-pre {
-    background-color: #f4f4f4;
-    padding: 10px;
-    border-radius: 3px;
-    overflow-x: auto;
-    margin-top: 5px;
-}
+        details {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px;
+            background-color: #e2e2e2;
+            border-radius: 3px;
+        }
+        summary:hover {
+            background-color: #d0d0d0;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            margin-top: 5px;
+        }
 
+        /* Styles for Deltas */
+        .delta {
+            font-size: 0.8em; /* Smaller font size for delta */
+            color: #555; /* Neutral color */
+            text-align: center;
+        }
+        .delta-up {
+            color: green;
+        }
+        .delta-down {
+            color: red;
+        }
+        .delta-same {
+            color: gray;
+        }
+        .delta i {
+            margin-right: 3px;
+        }
+        .current-count {
+            font-size: 2em; /* Larger font size for current count */
+            font-weight: bold;
+            margin-bottom: 5px; /* Space between count and delta */
+            text-align: center;
+        }
     </style>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-
 
 <div id="test-case-container"></div>
 
@@ -84,7 +110,10 @@ pre {
         const container = document.getElementById('test-case-container');
         container.innerHTML = `<p class="error">${message}</p>`;
     }
-    // Function to display a test case
+
+    /**
+     * Function to display a test case
+     */
     function displayTestCase(testCase) {
         var container = document.getElementById('test-case-container');
         container.innerHTML = ''; // Clear previous content
@@ -93,8 +122,10 @@ pre {
         testCaseDiv.className = 'test-case';
 
         var title = document.createElement('h2');
-        title.textContent = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');        testCaseDiv.appendChild(title);
+        title.textContent = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');
+        testCaseDiv.appendChild(title);
         document.title = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');
+
         var projectName = document.createElement('p');
         projectName.innerHTML = '<span class="label">Project Name:</span> ' + testCase.project_name;
         testCaseDiv.appendChild(projectName);
@@ -156,19 +187,47 @@ pre {
 
         container.appendChild(testCaseDiv);
     }
+
     /**
-     * Function to fetch JSON data from test_results.json
+     * Function to fetch JSON data from a specific test run JSON file.
      */
-    async function fetchTestResults() {
+    async function fetchTestRunData(filename) {
         try {
-            const response = await fetch('test_results.json');
+            const response = await fetch(`test_results/${filename}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
             return data;
         } catch (error) {
-            displayError(`Failed to load test results: ${error.message}`);
+            displayError(`Failed to load test run data: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Function to fetch the index file and determine the latest test run.
+     */
+    async function fetchLatestTestRunFilename() {
+        try {
+            const response = await fetch('test_results/test_results_index.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const indexData = await response.json();
+            if (!Array.isArray(indexData) || indexData.length === 0) {
+                throw new Error('No test runs available.');
+            }
+            // Assuming the index is sorted in chronological order. If not, sort it.
+            // Sort by filename timestamp descending (assuming filename format: test_results_<timestamp>.json)
+            indexData.sort((a, b) => {
+                const timestampA = a.filename.match(/test_results_(\d{8}_\d{6})\.json$/)[1];
+                const timestampB = b.filename.match(/test_results_(\d{8}_\d{6})\.json$/)[1];
+                return timestampB.localeCompare(timestampA);
+            });
+            return indexData[0].filename; // Latest test run
+        } catch (error) {
+            displayError(`Failed to load test runs index: ${error.message}`);
             throw error;
         }
     }
@@ -180,14 +239,12 @@ pre {
         const { project, class: classNameParam, test } = params;
 
         if (!project || !classNameParam) {
-            displayError('Missing URL parameters. Please provide "project", "class", and "test" parameters.');
+            displayError('Missing URL parameters. Please provide "project" and "class" parameters.');
             return null;
         }
 
-        resolved_test = test;
-        if (!test) {
-            resolved_test="";
-        }
+        const resolved_test = test ? test : "";
+
         for (let testCase of testResults.test_results) {
             if (testCase.project_name !== project) continue;
             if (testCase.class_name === classNameParam && testCase.test_name === resolved_test) {
@@ -204,12 +261,17 @@ pre {
      */
     async function init() {
         const params = getUrlParameters();
-        const testResults = await fetchTestResults();
-        if (!testResults) return;
+        try {
+            const latestFilename = await fetchLatestTestRunFilename();
+            const testResultsData = await fetchTestRunData(latestFilename);
+            if (!testResultsData) return;
 
-        const testCase = findTestCase(testResults, params);
-        if (testCase) {
-            displayTestCase(testCase);
+            const testCase = findTestCase(testResultsData, params);
+            if (testCase) {
+                displayTestCase(testCase);
+            }
+        } catch (error) {
+            console.error('Initialization error:', error);
         }
     }
 

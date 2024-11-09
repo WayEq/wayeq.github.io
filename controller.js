@@ -3,7 +3,128 @@ let allTestResultsData = []; // Declare at the top
 let previousTestResultsData = [];
 let testResultsPieChart;
 let testRunData = [];
+let trendChart;
+
 // Start functions
+
+
+// Function to handle the trend chart
+async function showTrendChart() {
+    try {
+        // Fetch the test_runs index
+        const response = await fetch('test_results/test_results_index.json');
+        const testRuns = await response.json();
+
+        // Prepare data for the chart
+        const labels = [];
+        const passedData = [];
+        const failedData = [];
+        const errorData = [];
+        const skippedData = [];
+
+        // Sort the testRuns by execution_time
+        testRuns.sort((a, b) => new Date(a.execution_time) - new Date(b.execution_time));
+
+        testRuns.forEach(run => {
+            labels.push(run.execution_time); // Use execution_time as label
+            passedData.push(run.counts.passed);
+            failedData.push(run.counts.failed);
+            errorData.push(run.counts.error);
+            skippedData.push(run.counts.skipped);
+        });
+
+        // Get the context of the canvas
+        const ctx = document.getElementById('trendChart').getContext('2d');
+
+        // If the chart already exists, destroy it before creating a new one
+        if (trendChart) {
+            trendChart.destroy();
+        }
+
+        // Create the line chart
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: passedData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false,
+                        borderWidth: 2,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Failed',
+                        data: failedData,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false,
+                        borderWidth: 2,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Error',
+                        data: errorData,
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        fill: false,
+                        borderWidth: 2,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Skipped',
+                        data: skippedData,
+                        borderColor: 'rgba(201, 203, 207, 1)',
+                        backgroundColor: 'rgba(201, 203, 207, 0.2)',
+                        fill: false,
+                        borderWidth: 2,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Execution Time'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Tests'
+                        },
+                        beginAtZero: true
+                    }
+                },
+	            plugins: {
+	                legend: {
+	                    position: 'bottom',
+	                    labels: {
+	                        font: {
+	                            size: 12
+	                        }
+	                    }
+	                }
+                }
+            }
+        });
+
+        // Show the chart container
+        document.getElementById('trendChartContainer').style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching trend data:', error);
+    }
+}
+
+
 
 // Function to fetch and populate test runs
 async function fetchTestRuns() {
@@ -19,6 +140,7 @@ async function fetchTestRuns() {
         if (testRuns.length > 0) {
             const latestTestRun = testRuns[testRuns.length - 1];
             fetchAndDisplayTestResults(latestTestRun.filename);
+            showTrendChart();
         }
     } catch (error) {
         console.error('Error fetching test runs:', error);
@@ -905,6 +1027,7 @@ fetch('test_analysis_results.json')
 
 document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
 document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
+//document.getElementById('showTrendButton').addEventListener('click', showTrendChart);
 
 // Call fetchTestRuns when the page loads
 document.addEventListener('DOMContentLoaded', () => {

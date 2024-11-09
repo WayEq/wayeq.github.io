@@ -2,16 +2,45 @@
     {
         "filename": "test_results_20241106_191041.json",
         "execution_time": "2024-11-06 19:10:41",
-        "test_branch": "track/idrhermes"
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1011,
+            "failed": 67,
+            "error": 30,
+            "skipped": 228
+        }
     },
     {
         "filename": "test_results_20241107_191512.json",
         "execution_time": "2024-11-07 19:15:12",
-        "test_branch": "track/idrhermes"
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1036,
+            "failed": 67,
+            "error": 5,
+            "skipped": 228
+        }
     },
     {
         "filename": "test_results_20241108_205459.json",
         "execution_time": "2024-11-08 20:18:22",
-        "test_branch": "track/idrhermes"
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1066,
+            "failed": 23,
+            "error": 4,
+            "skipped": 243
+        }
+    },
+    {
+        "filename": "test_results_20241109_124928.json",
+        "execution_time": "2024-11-09 12:49:24",
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1090,
+            "failed": 15,
+            "error": 3,
+            "skipped": 228
+        }
     }
 ]

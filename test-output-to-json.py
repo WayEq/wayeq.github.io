@@ -127,7 +127,7 @@ def parse_failsafe_xml(xml_file, project_name):
         'test_cases': test_results
     }
 
-def update_index_file(output_filename, execution_time, test_branch):
+def update_index_file(output_filename, execution_time, test_branch, counts):
     index_data = []
     if os.path.exists(INDEX_FILE):
         try:
@@ -140,7 +140,8 @@ def update_index_file(output_filename, execution_time, test_branch):
     index_data.append({
         "filename": output_filename,
         "execution_time": execution_time,
-        "test_branch": test_branch
+        "test_branch": test_branch,
+        "counts": counts  # Include counts in the index
     })
 
     # Save the updated index
@@ -212,6 +213,14 @@ def main():
         'test_results': all_test_cases
     }
 
+    # Calculate counts
+    counts = {
+        'passed': sum(1 for test in all_test_cases if test['result'] == 'passed'),
+        'failed': sum(1 for test in all_test_cases if test['result'] == 'failed'),
+        'error': sum(1 for test in all_test_cases if test['result'] == 'error'),
+        'skipped': sum(1 for test in all_test_cases if test['result'] == 'skipped')
+    }
+
     # Generate timestamped filename
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     output_filename = f"test_results_{timestamp}.json"
@@ -225,8 +234,8 @@ def main():
     except Exception as e:
         print(f"Error writing to JSON file {output_filepath}: {e}")
 
-    # Update the index file
-    update_index_file(output_filename, execution_time_str, test_branch)
+    # Update the index file with counts
+    update_index_file(output_filename, execution_time_str, test_branch, counts)
 
 if __name__ == '__main__':
     main()

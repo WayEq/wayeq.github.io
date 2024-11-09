@@ -449,3 +449,89 @@ select {
     color: gray;
 }
 
+
+/* Flex container for charts */
+.charts-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to next line if needed */
+    justify-content: space-between; /* Distribute space between items */
+    align-items: flex-start; /* Align items to the top */
+    margin-top: 20px;
+}
+
+/* Each chart item */
+.chart-item {
+    flex: 1 1 45%; /* Grow and shrink as needed, base width 45% */
+    max-width: 45%; /* Ensure it doesn't exceed 45% */
+    min-width: 300px; /* Prevent charts from getting too small */
+    margin: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #ffffff; /* White background for clarity */
+    padding: 20px; /* Inner padding */
+    box-sizing: border-box; /* Include padding and border in width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Specific styling for Pie Chart */
+.pie-chart-item {
+    /* Optional: Set a specific height or aspect ratio */
+    height: 300px; /* Adjust as needed */
+}
+
+/* Specific styling for Trend Chart */
+.trend-chart-item {
+    height: 300px; /* Adjust as needed */
+}
+
+/* Canvas Styling */
+.chart-item canvas {
+    width: 100% !important; /* Make canvas take full width of its container */
+    height: 100% !important; /* Make canvas take full height of its container */
+    object-fit: contain; /* Ensure the chart fits within the container without distortion */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .chart-item {
+        flex: 1 1 48%; /* Slightly adjust for medium screens */
+        max-width: 48%;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-item {
+        flex: 1 1 100%; /* Full width on smaller screens */
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-item {
+        flex: 1 1 100%; /* Full width on very small screens */
+        max-width: 100%;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-item {
+        flex: 1 1 100%; /* Full width on medium screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-item {
+        flex: 1 1 100%; /* Full width on small screens */
+    }
+}
+
+
+.chart-item:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
