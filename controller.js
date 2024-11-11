@@ -50,7 +50,7 @@ async function showTrendChart() {
                     {
                         label: 'Passed',
                         data: passedData,
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderColor: 'rgba(75, 192, 132, 1)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         fill: false,
                         borderWidth: 2,

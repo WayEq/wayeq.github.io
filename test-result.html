@@ -77,6 +77,23 @@
             margin-bottom: 5px; /* Space between count and delta */
             text-align: center;
         }
+
+        /* New CSS Class for Highlighting "SEVERE" Lines */
+        .severe-line {
+            color: red; /* Text color red */
+            font-weight: bold; /* Bold text */
+            background-color: #ffe6e6; /* Light red background for better visibility */
+            padding: 2px 4px; /* Slight padding */
+            border-radius: 3px; /* Rounded corners */
+        }
+
+        .testcase-line {
+            color: green; /* Text color red */
+            font-weight: bold; /* Bold text */
+            background-color: #e6ffe6; /* Light red background for better visibility */
+            padding: 2px 4px; /* Slight padding */
+            border-radius: 3px; /* Rounded corners */
+        }
     </style>
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -101,6 +118,32 @@
             params[key] = value;
         }
         return params;
+    }
+
+    /**
+     * Function to escape HTML characters to prevent XSS attacks.
+     */
+    function escapeHtml(unsafe) {
+        return unsafe.replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+    }
+
+    /**
+     * Function to highlight lines containing "SEVERE".
+     * Wraps the line with a <span> that has the 'severe-line' class.
+     */
+    function highlightLines(text, testCaseName) {
+        return text.split('\n').map(line => {
+            if (line.includes('SEVERE')) {
+                return `<span class="severe-line">${escapeHtml(line)}</span>`;
+            } else if (line.includes(testCaseName)) {
+                return `<span class="testcase-line">${escapeHtml(line)}</span>`;
+            }
+            return escapeHtml(line);
+        }).join('\n');
     }
 
     /**
@@ -167,7 +210,7 @@
             var systemOutSummary = document.createElement('summary');
             systemOutSummary.textContent = 'System Out';
             var systemOutPre = document.createElement('pre');
-            systemOutPre.textContent = testCase.system_out;
+            systemOutPre.innerHTML = highlightLines(testCase.system_out, testCase.class_name);
             systemOutDetails.appendChild(systemOutSummary);
             systemOutDetails.appendChild(systemOutPre);
             testCaseDiv.appendChild(systemOutDetails);
@@ -179,7 +222,7 @@
             var systemErrSummary = document.createElement('summary');
             systemErrSummary.textContent = 'System Error';
             var systemErrPre = document.createElement('pre');
-            systemErrPre.textContent = testCase.system_err;
+            systemErrPre.innerHTML = highlightLines(testCase.system_err, testCase.class_name);
             systemErrDetails.appendChild(systemErrSummary);
             systemErrDetails.appendChild(systemErrPre);
             testCaseDiv.appendChild(systemErrDetails);
