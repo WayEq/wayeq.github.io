@@ -132,22 +132,39 @@
         </div>
 </div>
 
-<div class="chart-container">
-    <canvas id="testChart"></canvas>
+<!-- Line Graph -->
+<div id="testsAddedTrendChartContainer" class="chart-container">
+    <canvas id="testsAddedTrendChart"></canvas>
 </div>
-<div class="filter-container">
-    <div>
-        <label for="authorFilter">Filter by Author:</label>
-        <select id="authorFilter">
-            <option value="all">All Authors</option>
-        </select>
-    </div>
-    <div>
-        <label for="projectFilter">Filter by Project:</label>
-        <select id="projectFilter">
-            <option value="all">All Projects</option>
-        </select>
-    </div>
+
+<!-- Time Window Radio Buttons -->
+<div class="time-window-filters">
+    <label>Time Window:</label>
+
+    <input type="radio" id="timeWindowAll" name="timeWindow" value="all" checked>
+    <label for="timeWindowAll">All Time</label>
+
+    <input type="radio" id="timeWindowLast6Months" name="timeWindow" value="last_6_months">
+    <label for="timeWindowLast6Months">Last 6 Months</label>
+
+    <input type="radio" id="timeWindowLastYear" name="timeWindow" value="last_year">
+    <label for="timeWindowLastYear">Last Year</label>
+</div>
+
+<!-- Existing Filters -->
+<div class="filters">
+    <!-- Filter by Author and Filter by Project -->
+    <label for="authorFilter">Filter by Author:</label>
+    <select id="authorFilter">
+        <option value="all">All Authors</option>
+        <!-- Author options populated dynamically -->
+    </select>
+
+    <label for="projectFilter">Filter by Project:</label>
+    <select id="projectFilter">
+        <option value="all">All Projects</option>
+        <!-- Project options populated dynamically -->
+    </select>
 </div>
 <div class="details-section" id="details">
     <h2 id="detailsHeader">Details for Selected Month</h2>

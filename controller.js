@@ -20,11 +20,24 @@ function getUrlParameters() {
     }
     return params;
 }
-
+/**
+ * Returns the ordinal suffix for a given day.
+ * @param {number} day - The day of the month.
+ * @returns {string} The ordinal suffix ('st', 'nd', 'rd', 'th').
+ */
+function getOrdinalSuffix(day) {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+        case 1:  return "st";
+        case 2:  return "nd";
+        case 3:  return "rd";
+        default: return "th";
+    }
+}
 /**
  * Function to handle the trend chart
  */
-async function showTrendChart() {
+async function showTestResultTrendChart() {
     try {
         // Fetch the test_runs index
         const response = await fetch('test_results/test_results_index.json');
@@ -41,7 +54,16 @@ async function showTrendChart() {
         testRuns.sort((a, b) => new Date(a.execution_time) - new Date(b.execution_time));
 
         testRuns.forEach(run => {
-            labels.push(run.execution_time); // Use execution_time as label
+            const date = new Date(run.execution_time);
+            const month = date.toLocaleString('default', { month: 'short' }); // e.g., 'Nov'
+            const day = date.getDate();
+            const ordinal = getOrdinalSuffix(day);
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+            const formattedDate = `${month} ${day}${ordinal}, ${formattedHours}:${minutes}${ampm}`;
+            labels.push(formattedDate);
             passedData.push(run.counts.passed);
             failedData.push(run.counts.failed);
             errorData.push(run.counts.error);
@@ -145,8 +167,6 @@ async function showTrendChart() {
             }
         });
 
-        // Show the chart container
-        document.getElementById('trendChartContainer').style.display = 'block';
     } catch (error) {
         console.error('Error fetching trend data:', error);
     }
@@ -167,7 +187,7 @@ async function fetchTestRuns(desiredExecution = null) { // Accept desiredExecuti
             const latestTestRun = testRuns[testRuns.length - 1];
             fetchAndDisplayTestResults(latestTestRun.filename);
         }
-        showTrendChart();
+        showTestResultTrendChart();
     } catch (error) {
         console.error('Error fetching test runs:', error);
     }
@@ -203,7 +223,7 @@ function populateTestRunSelection(testRuns, desiredExecution) { // Accept desire
                 const latestTestRun = testRuns[testRuns.length - 1];
                 testRunSelect.value = latestTestRun.filename;
                 fetchAndDisplayTestResults(latestTestRun.filename);
-                showTrendChart();
+                showTestResultTrendChart();
             }
         }
     } else {
@@ -299,34 +319,63 @@ function highlightAuthorRow(author) {
 
 // Update the chart data only, not the details table
 function updateChart(monthlyData, chart, pieChart) {
-    // Filter the data based on selected author and project
-    const selectedAuthor = authorFilter.value;
-    const selectedProject = projectFilter.value;
+    const selectedAuthor = document.getElementById('authorFilter').value;
+    const selectedProject = document.getElementById('projectFilter').value;
 
-    const filteredData = monthlyData.map(item => {
-        let integrationCount = 0;
-        let unitCount = 0;
+    // Get the selected time window from the radio buttons
+    const selectedTimeWindow = document.querySelector('input[name="timeWindow"]:checked').value;
 
-        const filteredIntegrationDetails = item.integration_details.filter(detail =>
-            (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
-            (selectedProject === 'all' || detail.project === selectedProject)
-        );
-        const filteredUnitDetails = item.unit_details.filter(detail =>
-            (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
-            (selectedProject === 'all' || detail.project === selectedProject)
-        );
 
-        integrationCount = filteredIntegrationDetails.length;
-        unitCount = filteredUnitDetails.length;
+    const now = new Date();
+    let startDate;
 
-        return {
-            month: item.month,
-            integration_count: integrationCount,
-            unit_count: unitCount,
-            integration_details: filteredIntegrationDetails,
-            unit_details: filteredUnitDetails
-        };
-    });
+    // Determine the start date based on selected time window
+    switch (selectedTimeWindow) {
+        case 'last_6_months':
+            startDate = new Date(now);
+            startDate.setMonth(startDate.getMonth() - 6);
+            break;
+        case 'last_year': // Handling 'Last Year'
+            startDate = new Date(now);
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+        case 'all':
+        default:
+            startDate = new Date(0); // Set to earliest possible date
+            break;
+    }
+
+    const filteredData = monthlyData
+        .filter(item => {
+            // Convert month string to a date object (assuming format 'YYYY-MM')
+            const [year, month] = item.month.split('-');
+            const itemDate = new Date(year, month); // Months are 0-indexed in JS Date
+            return itemDate >= startDate;
+        })
+        .map(item => {
+            let integrationCount = 0;
+            let unitCount = 0;
+
+            const filteredIntegrationDetails = item.integration_details.filter(detail =>
+                (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
+                (selectedProject === 'all' || detail.project === selectedProject)
+            );
+            const filteredUnitDetails = item.unit_details.filter(detail =>
+                (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
+                (selectedProject === 'all' || detail.project === selectedProject)
+            );
+
+            integrationCount = filteredIntegrationDetails.length;
+            unitCount = filteredUnitDetails.length;
+
+            return {
+                month: item.month,
+                integration_count: integrationCount,
+                unit_count: unitCount,
+                integration_details: filteredIntegrationDetails,
+                unit_details: filteredUnitDetails
+            };
+        });
 
     // Update chart data only
 
@@ -367,12 +416,11 @@ function updateChart(monthlyData, chart, pieChart) {
     }
     chart.update();
 
-    // Update the pie chart
-    updatePieChart(filteredData, pieChart);
+    updateTestTypesPieChart(filteredData, pieChart);
 }
 
 // Function to update the pie chart
-function updatePieChart(filteredData, pieChart) {
+function updateTestTypesPieChart(filteredData, pieChart) {
     // Calculate total integration and unit tests from filteredData
     const totalIntegrationTests = filteredData.reduce((sum, item) => sum + item.integration_count, 0);
     const totalUnitTests = filteredData.reduce((sum, item) => sum + item.unit_count, 0);
@@ -995,7 +1043,7 @@ fetch('test_analysis_results.json')
             `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
 
         // Create the line chart
-        const ctx = document.getElementById('testChart').getContext('2d');
+        const ctx = document.getElementById('testsAddedTrendChart').getContext('2d');
         console.log('Initializing chart with labels:', labels);
         const chart = new Chart(ctx, {
             type: 'line',
@@ -1164,6 +1212,17 @@ fetch('test_analysis_results.json')
             updateChart(monthlyData, chart, pieChart);
         });
 
+		// Get references to the time window radio buttons
+		const timeWindowRadios = document.getElementsByName('timeWindow');
+
+		// Add event listeners for when the time window changes
+		timeWindowRadios.forEach(radio => {
+		    radio.addEventListener('change', () => {
+		        resetDetailsTable();
+		        updateChart(monthlyData, chart, pieChart);
+		    });
+		});
+
     })
     .catch(error => console.error('Error loading JSON data:', error));
 
@@ -1194,3 +1253,4 @@ toggleDetailsButton.addEventListener('click', () => {
         expandCollapsibleContent();
     }
 });
+

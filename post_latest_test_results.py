@@ -50,10 +50,8 @@ def generate_message(latest_result):
     Generate a formatted message string from the latest test result.
     """
     message = (
-        f"**Latest Test Results**\n"
-        f"**Branch:** {latest_result['test_branch']}\n"
+        f"**Integration Test Results** (*{latest_result['test_branch']}*)\n"
         f"**Execution Time:** {latest_result['execution_time']}\n\n"
-        f"**Test Counts:**\n"
         f"- Passed: {latest_result['counts']['passed']}\n"
         f"- Failed: {latest_result['counts']['failed']}\n"
         f"- Error: {latest_result['counts']['error']}\n"
