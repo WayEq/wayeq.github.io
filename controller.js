@@ -71,7 +71,7 @@ async function showTestResultTrendChart() {
         });
 
         // Get the context of the canvas
-        const ctx = document.getElementById('trendChart').getContext('2d');
+        const ctx = document.getElementById('testResultsTrendChart').getContext('2d');
 
         // If the chart already exists, destroy it before creating a new one
         if (trendChart) {
@@ -84,15 +84,6 @@ async function showTestResultTrendChart() {
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Passed',
-                        data: passedData,
-                        borderColor: 'rgba(75, 192, 132, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false,
-                        borderWidth: 2,
-                        tension: 0.1
-                    },
                     {
                         label: 'Failed',
                         data: failedData,
@@ -127,10 +118,6 @@ async function showTestResultTrendChart() {
                 scales: {
                     x: {
                         display: true,
-                        title: {
-                            display: true,
-                            text: 'Execution Time'
-                        }
                     },
                     y: {
                         display: true,
@@ -144,7 +131,7 @@ async function showTestResultTrendChart() {
                 plugins: {
                     title: { // Added Title Configuration
                         display: true,
-                        text: 'Test Execution Trend (Last 5 Runs)',
+                        text: 'Test Issues Trend',
                         font: {
                             size: 18,
                             weight: 'bold'
