@@ -1,3 +1,4 @@
+// controller.js
 
 let allTestResultsData = []; // Declare at the top
 let previousTestResultsData = [];
@@ -5,10 +6,24 @@ let testResultsPieChart;
 let testRunData = [];
 let trendChart;
 
-// Start functions
+// Utility function to get URL parameters as an object.
+// Example: ?project=snc-idr-test&class=ExampleTest&test=testFailure&execution=test_run_1.json
+// Returns: { project: "snc-idr-test", class: "ExampleTest", test: "testFailure", execution: "test_run_1.json" }
+function getUrlParameters() {
+    const params = {};
+    const queryString = window.location.search.substring(1);
+    const pairs = queryString.split('&');
+    for (let pair of pairs) {
+        if (pair === "") continue;
+        const [key, value] = pair.split('=').map(decodeURIComponent);
+        params[key] = value;
+    }
+    return params;
+}
 
-
-// Function to handle the trend chart
+/**
+ * Function to handle the trend chart
+ */
 async function showTrendChart() {
     try {
         // Fetch the test_runs index
@@ -104,15 +119,28 @@ async function showTrendChart() {
                         beginAtZero: true
                     }
                 },
-	            plugins: {
-	                legend: {
-	                    position: 'bottom',
-	                    labels: {
-	                        font: {
-	                            size: 12
-	                        }
-	                    }
-	                }
+                plugins: {
+                    title: { // Added Title Configuration
+                        display: true,
+                        text: 'Test Execution Trend (Last 5 Runs)',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 30
+                        },
+                        color: '#333' // Optional: Set the color of the title text
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -124,30 +152,28 @@ async function showTrendChart() {
     }
 }
 
-
-
 // Function to fetch and populate test runs
-async function fetchTestRuns() {
+async function fetchTestRuns(desiredExecution = null) { // Accept desiredExecution as a parameter
     try {
         const response = await fetch('test_results/test_results_index.json');
         const testRuns = await response.json();
         testRunData = testRuns;
 
         // Populate the test run selection dropdown
-        populateTestRunSelection(testRuns);
+        populateTestRunSelection(testRuns, desiredExecution); // Pass desiredExecution to the function
 
-        // Load the latest test run by default
-        if (testRuns.length > 0) {
+        // If desiredExecution is not set, load the latest test run by default
+        if (!desiredExecution && testRuns.length > 0) {
             const latestTestRun = testRuns[testRuns.length - 1];
             fetchAndDisplayTestResults(latestTestRun.filename);
-            showTrendChart();
         }
+        showTrendChart();
     } catch (error) {
         console.error('Error fetching test runs:', error);
     }
 }
 
-function populateTestRunSelection(testRuns) {
+function populateTestRunSelection(testRuns, desiredExecution) { // Accept desiredExecution as a parameter
     const testRunSelect = document.getElementById('testRunSelect');
     testRunSelect.innerHTML = ''; // Clear existing options
 
@@ -159,16 +185,33 @@ function populateTestRunSelection(testRuns) {
         testRunSelect.appendChild(option);
     });
 
-    // Set the selected option to the latest test run
-    if (testRuns.length > 0) {
-        testRunSelect.selectedIndex = testRuns.length - 1;
-    }
-
     // Add an event listener for when the user selects a different test run
     testRunSelect.addEventListener('change', (event) => {
         const selectedFilename = event.target.value;
         fetchAndDisplayTestResults(selectedFilename);
     });
+
+    // If desiredExecution is specified and exists, set it as selected
+    if (desiredExecution) {
+        const desiredOption = Array.from(testRunSelect.options).find(option => option.value === desiredExecution);
+        if (desiredOption) {
+            testRunSelect.value = desiredExecution;
+            fetchAndDisplayTestResults(desiredExecution);
+        } else {
+            console.warn(`Desired execution "${desiredExecution}" not found. Loading the latest test run instead.`);
+            if (testRuns.length > 0) {
+                const latestTestRun = testRuns[testRuns.length - 1];
+                testRunSelect.value = latestTestRun.filename;
+                fetchAndDisplayTestResults(latestTestRun.filename);
+                showTrendChart();
+            }
+        }
+    } else {
+        // If no desiredExecution, set the selected option to the latest test run
+        if (testRuns.length > 0) {
+            testRunSelect.selectedIndex = testRuns.length - 1;
+        }
+    }
 }
 
 function createTestResultsPieChart(passed, failed, error, skipped) {
@@ -199,6 +242,19 @@ function createTestResultsPieChart(passed, failed, error, skipped) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+                title: { // Added Title Configuration
+                    display: true,
+                    text: 'Test Results Distribution',
+                    font: {
+                        size: 18,
+                        weight: 'bold'
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 30
+                    },
+                    color: '#333' // Optional: Set the color of the title text
+                },
                 legend: {
                     position: 'bottom',
                     labels: {
@@ -320,9 +376,14 @@ function updatePieChart(filteredData, pieChart) {
     // Calculate total integration and unit tests from filteredData
     const totalIntegrationTests = filteredData.reduce((sum, item) => sum + item.integration_count, 0);
     const totalUnitTests = filteredData.reduce((sum, item) => sum + item.unit_count, 0);
+    const totalTests = totalIntegrationTests + totalUnitTests;
 
     pieChart.data.datasets[0].data = [totalIntegrationTests, totalUnitTests];
     pieChart.update();
+
+    // Update the total tests count in the UI if applicable
+    document.getElementById('totalTests').textContent =
+        `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
 }
 
 // Function to generate the class coverage URL
@@ -377,11 +438,11 @@ function populateDetails(month, testType, details) {
                 const classCell = document.createElement('td');
                 const classLink = document.createElement('a');
                 const coverageCell = document.createElement('td');
+                const packagePath = detail.package; // Assuming package path is in the format required
                 classLink.href = detail.project.includes('glide-idr') ? `https://code.devsnc.com/dev/glide/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java` : `https://code.devsnc.com/dev/glide-test/blob/track/idrhermes/${detail.project}/src/test/java/${detail.package}/${detail.class}.java`;
                 classLink.target = '_blank';
                 classLink.textContent = detail.class;
                 const coverageLink = document.createElement('a');
-                const packagePath = detail.package; // Assuming package path is in the format required
                 coverageLink.href = generateCoverageUrl(detail.class, packagePath);
                 coverageLink.target = '_blank';
                 coverageLink.textContent = "link";
@@ -443,7 +504,6 @@ function populateLatestTests(testMetadata) {
         // Create elements for test name, class, author, and timestamp
         const testName = document.createElement('span');
         testName.classList.add('test-name');
-        testName.textContent = test.test;
 
         const className = document.createElement('span');
         className.classList.add('class-name');
@@ -476,6 +536,8 @@ function populateLatestTests(testMetadata) {
         latestTestsList.appendChild(listItem);
     });
 }
+
+// Function to fetch and display test results for a specific filename
 async function fetchAndDisplayTestResults(filename) {
     try {
         // Find the index of the selected test run
@@ -514,8 +576,6 @@ async function fetchAndDisplayTestResults(filename) {
         console.error('Error fetching test results:', error);
     }
 }
-
-
 
 function expandCollapsibleContent() {
     // Set the height to the scrollHeight
@@ -575,6 +635,7 @@ function displayTestMetadata(executionTime, testBranch) {
         <p><strong><i class="fas fa-code-branch"></i> Test Branch:</strong> ${testBranch}</p>
     `;
 }
+
 // Function to populate the test results filters
 function populateTestResultsFilters(testResultsData) {
     const projectNameFilter = document.getElementById('projectNameFilter');
@@ -593,16 +654,16 @@ function populateTestResultsFilters(testResultsData) {
 
 function updateTestResultsSummary(currentCounts, previousCounts) {
     // Update counts
-    document.getElementById('passedCount').innerHTML = formatCountWithDelta(currentCounts.passed, previousCounts ? previousCounts.passed : null);
-    document.getElementById('failedCount').innerHTML = formatCountWithDelta(currentCounts.failed, previousCounts ? previousCounts.failed : null);
-    document.getElementById('errorCount').innerHTML = formatCountWithDelta(currentCounts.error, previousCounts ? previousCounts.error : null);
-    document.getElementById('skippedCount').innerHTML = formatCountWithDelta(currentCounts.skipped, previousCounts ? previousCounts.skipped : null);
+    document.getElementById('passedCount').innerHTML = formatCountWithDelta('passedCount', currentCounts.passed, previousCounts ? previousCounts.passed : null);
+    document.getElementById('failedCount').innerHTML = formatCountWithDelta('failedCount', currentCounts.failed, previousCounts ? previousCounts.failed : null);
+    document.getElementById('errorCount').innerHTML = formatCountWithDelta('errorCount', currentCounts.error, previousCounts ? previousCounts.error : null);
+    document.getElementById('skippedCount').innerHTML = formatCountWithDelta('skippedCount', currentCounts.skipped, previousCounts ? previousCounts.skipped : null);
 
     // Create or update the pie chart
     createTestResultsPieChart(currentCounts.passed, currentCounts.failed, currentCounts.error, currentCounts.skipped);
 }
 
-function formatCountWithDelta(currentCount, previousCount) {
+function formatCountWithDelta(metricType, currentCount, previousCount) {
     if (previousCount === null) {
         // No previous data, just display the current count
         return `${currentCount}`;
@@ -614,18 +675,18 @@ function formatCountWithDelta(currentCount, previousCount) {
 
     if (delta > 0) {
         deltaSymbol = `&uarr; ${delta}`;
-        deltaClass = 'delta-up';
+        metricType === 'passedCount' ? deltaClass = 'delta-up' : deltaClass = 'delta-down';
     } else if (delta < 0) {
         deltaSymbol = `&darr; ${Math.abs(delta)}`;
-        deltaClass = 'delta-down';
+        metricType === 'passedCount' ? deltaClass = 'delta-down' : deltaClass = 'delta-up';
+
     } else {
-        deltaSymbol = `&ndash; 0`;
+        deltaSymbol = ``;
         deltaClass = 'delta-same';
     }
 
     return `${currentCount} <span class="delta ${deltaClass}">${deltaSymbol}</span>`;
 }
-
 
 // Function to populate the test results table
 function populateTestResultsTable(testResultsData) {
@@ -721,7 +782,6 @@ function groupBy(array, key) {
     }, {});
 }
 
-
 function applyTestResultsFilters() {
     const selectedResult = document.getElementById('resultFilter').value;
     const selectedProject = document.getElementById('projectNameFilter').value;
@@ -739,7 +799,91 @@ function applyTestResultsFilters() {
     // Update the summary and table with the filtered data
     populateTestResultsTable(filteredData);
 }
-// end functions
+
+
+/**
+ * Function to fetch JSON data from a specific test run JSON file.
+ */
+async function fetchTestRunData(filename) {
+    try {
+        const response = await fetch(`test_results/${filename}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        displayError(`Failed to load test run data: ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Function to fetch the index file and determine the latest test run.
+ * @returns {Promise<string>} The filename of the latest test run.
+ */
+async function fetchTestRunIndex() {
+    try {
+        const response = await fetch('test_results/test_results_index.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const indexData = await response.json();
+        if (!Array.isArray(indexData) || indexData.length === 0) {
+            throw new Error('No test runs available.');
+        }
+        return indexData;
+    } catch (error) {
+        displayError(`Failed to load test runs index: ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Function to find a test case based on parameters.
+ */
+function findTestCase(testResults, params) {
+    const { project, class: classNameParam, test } = params;
+
+    if (!project || !classNameParam) {
+        displayError('Missing URL parameters. Please provide "project" and "class" parameters.');
+        return null;
+    }
+
+    const resolved_test = test ? test : "";
+
+    for (let testCase of testResults.test_results) {
+        if (testCase.project_name !== project) continue;
+        if (testCase.class_name === classNameParam && testCase.test_name === resolved_test) {
+            return testCase;
+        }
+    }
+
+    displayError('Test case not found. Please check the provided parameters.');
+    return null;
+}
+
+/**
+ * Initialization function to be called on page load.
+ */
+async function init() {
+    const params = getUrlParameters();
+    const desiredExecution = params.execution || null; // Get the 'execution' parameter if it exists
+
+    try {
+        const indexData = await fetchTestRunIndex();
+        await fetchTestRuns(desiredExecution); // Pass desiredExecution to fetchTestRuns
+
+        // The rest of your existing initialization logic can remain here
+    } catch (error) {
+        console.error('Initialization error:', error);
+    }
+}
+
+// End functions
+
+// Run the init function when the page loads
+window.onload = init;
 
 // Load the JSON data from the file
 console.log('Starting data load...');
@@ -940,56 +1084,54 @@ fetch('test_analysis_results.json')
         });
 
 
-		// Create the pie chart with the title
-		const pieCtx = document.getElementById('pieChart').getContext('2d');
-		const pieChart = new Chart(pieCtx, {
-		    type: 'pie',
-		    data: {
-		        labels: ['Integration Tests', 'Unit Tests'],
-		        datasets: [{
-		            data: [totalIntegrationTests, totalUnitTests],
-		            backgroundColor: [
-		                'rgba(75, 192, 192, 0.6)',
-		                'rgba(255, 99, 132, 0.6)'
-		            ],
-		            borderColor: [
-		                'rgba(75, 192, 192, 1)',
-		                'rgba(255, 99, 132, 1)'
-		            ],
-		            borderWidth: 1
-		        }]
-		    },
-		    options: {
-		        responsive: true,
-		        maintainAspectRatio: false,
-		        plugins: {
-		            legend: {
-		                position: 'right',
-		                labels: {
-		                    font: {
-		                        size: 14
-		                    }
-		                }
-		            },
-		            title: {
-		                display: true,
-		                text: 'Test Distribution',
-		                font: {
-		                    size: 18,
-		                    family: "'Roboto', sans-serif", // Optional: Match your page font
-		                    weight: 'bold' // Optional: Make the title bold
-		                },
-		                padding: {
-		                    top: 10,
-		                    bottom: 30
-		                },
-		                color: '#333' // Optional: Set the color of the title text
-		            }
-		        }
-		    }
-		});
-
-
+        // Create the pie chart with the title
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Integration Tests', 'Unit Tests'],
+                datasets: [{
+                    data: [totalIntegrationTests, totalUnitTests],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Test Distribution',
+                        font: {
+                            size: 18,
+                            family: "'Roboto', sans-serif", // Optional: Match your page font
+                            weight: 'bold' // Optional: Make the title bold
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 30
+                        },
+                        color: '#333' // Optional: Set the color of the title text
+                    }
+                }
+            }
+        });
 
         // Populate author test count table
         if (authorTestCountData) {
@@ -1025,14 +1167,7 @@ fetch('test_analysis_results.json')
     })
     .catch(error => console.error('Error loading JSON data:', error));
 
-document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
-document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
-//document.getElementById('showTrendButton').addEventListener('click', showTrendChart);
-
-// Call fetchTestRuns when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    fetchTestRuns();
-});
+// Call fetchTestRuns when the page loads with desiredExecution if present
 
 
 // Get references to the toggle button and collapsible content
@@ -1059,4 +1194,3 @@ toggleDetailsButton.addEventListener('click', () => {
         expandCollapsibleContent();
     }
 });
-

@@ -199,7 +199,7 @@
             var stackTrace = document.createElement('div');
             stackTrace.innerHTML = '<span class="label">Stack Trace:</span>';
             var pre = document.createElement('pre');
-            pre.textContent = testCase.stack_trace;
+            pre.innerHTML = highlightLines(testCase.stack_trace, testCase.class_name);
             stackTrace.appendChild(pre);
             testCaseDiv.appendChild(stackTrace);
         }
