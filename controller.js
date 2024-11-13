@@ -1220,6 +1220,10 @@ fetch('test_analysis_results.json')
 const toggleDetailsButton = document.getElementById('toggleDetailsButton');
 const collapsibleContent = document.getElementById('collapsibleContent');
 
+
+document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
+document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
+
 // Flag to track if test results have been loaded
 let testResultsLoaded = false;
 
