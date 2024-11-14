@@ -59,10 +59,43 @@
         "execution_time": "2024-11-11 19:27:37",
         "test_branch": "track/idrhermes",
         "counts": {
-            "passed": 1094,
-            "failed": 14,
-            "error": 0,
+            "passed": 1033,
+            "failed": 59,
+            "error": 17,
             "skipped": 228
+        }
+    },
+    {
+        "filename": "test_results_20241113_095629.json",
+        "execution_time": "2024-11-13 09:55:52",
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1038,
+            "failed": 59,
+            "error": 8,
+            "skipped": 228
+        }
+    },
+    {
+        "filename": "test_results_20241113_135624.json",
+        "execution_time": "2024-11-13 13:55:46",
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1066,
+            "failed": 17,
+            "error": 7,
+            "skipped": 243
+        }
+    },
+    {
+        "filename": "test_results_20241113_172317.json",
+        "execution_time": "2024-11-13 17:15:36",
+        "test_branch": "track/idrhermes",
+        "counts": {
+            "passed": 1057,
+            "failed": 11,
+            "error": 7,
+            "skipped": 258
         }
     }
 ]

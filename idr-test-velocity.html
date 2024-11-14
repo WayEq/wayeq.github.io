@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Analysis Results</title>
     <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="style.css">
+    <!-- Chart.js and Plugins -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline"></script>
 </head>
 <body>
-<h1>Automated Testing Pulse</h1>
-<div class="useful-links-section subtle-links">
-    <ul class="useful-links-row">
-        <li><a href="https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2Fcom%2Fglide"
-               target="_blank">Code Coverage</a></li>
-        <li><a href="https://servicenow.sharepoint.com/sites/hermes/SitePages/Dependable-IT-Framework-Training.aspx"
-               target="_blank">IT Framework Training</a></li>
-        <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do" target="_blank">Nightly
-            IT Results</a></li>
-        <li><a href="https://code.devsnc.com/aaron-shoal/it-runner" target="_blank">Zen IT Runner</a></li>
-        <li>
-            <a href="https://servicenow-my.sharepoint.com/:x:/r/personal/aaron_shoal_servicenow_com/_layouts/15/Doc.aspx?sourcedoc=%7BC911D78E-7803-4E52-A292-7D6209BF3983%7D&file=classes_without_it.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&ct=1729643200104&wdOrigin=OFFICECOM-WEB.START.CONTENTACTIONS&cid=64f3a580-8886-46ca-91d5-83f8dd127439&wdPreviousSessionSrc=HarmonyWeb&wdPreviousSession=74aaa4d3-16e8-4e58-9b1e-f52a46d7a578"
-               target="_blank">Classes Without Tests</a></li>
-    </ul>
-</div>
+    <h1>Automated Testing Pulse</h1>
+    <div class="useful-links-section subtle-links">
+        <ul class="useful-links-row">
+            <li><a href="https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2Fcom%2Fglide"
+                   target="_blank">Code Coverage</a></li>
+            <li><a href="https://servicenow.sharepoint.com/sites/hermes/SitePages/Dependable-IT-Framework-Training.aspx"
+                   target="_blank">IT Framework Training</a></li>
+            <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do" target="_blank">Nightly
+                IT Results</a></li>
+            <li><a href="https://code.devsnc.com/aaron-shoal/it-runner" target="_blank">Zen IT Runner</a></li>
+            <li>
+                <a href="https://servicenow-my.sharepoint.com/:x:/r/personal/aaron_shoal_servicenow_com/_layouts/15/Doc.aspx?sourcedoc=%7BC911D78E-7803-4E52-A292-7D6209BF3983%7D&file=classes_without_it.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&ct=1729643200104&wdOrigin=OFFICECOM-WEB.START.CONTENTACTIONS&cid=64f3a580-8886-46ca-91d5-83f8dd127439&wdPreviousSessionSrc=HarmonyWeb&wdPreviousSession=74aaa4d3-16e8-4e58-9b1e-f52a46d7a578"
+                   target="_blank">Classes Without Tests</a></li>
+        </ul>
+    </div>
 
 <!-- Test Run Selection -->
 <div class="test-run-selection">
