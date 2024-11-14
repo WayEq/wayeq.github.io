@@ -77,24 +77,13 @@
         }
     },
     {
-        "filename": "test_results_20241113_135624.json",
-        "execution_time": "2024-11-13 13:55:46",
+        "filename": "test_results_20241113_174030.json",
+        "execution_time": "2024-11-13 17:38:41",
         "test_branch": "track/idrhermes",
         "counts": {
-            "passed": 1066,
-            "failed": 17,
-            "error": 7,
-            "skipped": 243
-        }
-    },
-    {
-        "filename": "test_results_20241113_172317.json",
-        "execution_time": "2024-11-13 17:15:36",
-        "test_branch": "track/idrhermes",
-        "counts": {
-            "passed": 1057,
+            "passed": 1059,
             "failed": 11,
-            "error": 7,
+            "error": 5,
             "skipped": 258
         }
     }
