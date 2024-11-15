@@ -10,4 +10,4 @@ Basic instructions
 
 Advanced instructions
 
-1) Look at the python scripts that generate the data, and run them.
+1) Look at the python scripts that generate the data, update the projects and paths near the top of the scripts, and then run them to generate your own project data.
