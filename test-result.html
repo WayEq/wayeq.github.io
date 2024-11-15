@@ -3,100 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <title>TestPulse - Test Case Details</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
             margin: 20px;
         }
         .test-case {
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
-            max-width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 1600px;
+            margin: auto;
         }
         .test-case h2 {
-            margin-top: 0;
+            margin-bottom: 20px;
+            color: #343a40;
         }
-        .test-case pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            overflow-x: auto;
-            border-radius: 3px;
+        .label {
+            font-weight: 600;
         }
-        .test-case .label {
-            font-weight: bold;
+        .test-name {
+            color: #28a745; /* Bootstrap's success color */
+        }
+        .result-success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .result-failure {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .result-skipped {
+            color: #fd7e14;
+            font-weight: 600;
+        }
+        .result-unknown {
+            color: #6c757d;
+            font-weight: 600;
         }
         .error {
-            color: red;
+            color: #dc3545;
             font-weight: bold;
         }
-        /* Styles for <details> and <summary> */
-        details {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        summary {
-            font-weight: bold;
-            cursor: pointer;
-            padding: 5px;
-            background-color: #e2e2e2;
-            border-radius: 3px;
-        }
-        summary:hover {
-            background-color: #d0d0d0;
-        }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 3px;
-            overflow-x: auto;
-            margin-top: 5px;
-        }
-
-        /* Styles for Deltas */
-        .delta {
-            font-size: 0.8em; /* Smaller font size for delta */
-            color: #555; /* Neutral color */
-            text-align: center;
-        }
-        .delta-up {
-            color: green;
-        }
-        .delta-down {
-            color: red;
-        }
-        .delta-same {
-            color: gray;
-        }
-        .delta i {
-            margin-right: 3px;
-        }
-        .current-count {
-            font-size: 2em; /* Larger font size for current count */
-            font-weight: bold;
-            margin-bottom: 5px; /* Space between count and delta */
-            text-align: center;
-        }
-
-        /* New CSS Class for Highlighting "SEVERE" Lines */
+        /* Styles for Highlighting "SEVERE" Lines */
         .severe-line {
-            color: red; /* Text color red */
-            font-weight: bold; /* Bold text */
-            background-color: #ffe6e6; /* Light red background for better visibility */
-            padding: 2px 4px; /* Slight padding */
-            border-radius: 3px; /* Rounded corners */
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #f8d7da;
+            padding: 2px 4px;
+            border-radius: 3px;
         }
 
         .testcase-line {
-            color: green; /* Text color red */
-            font-weight: bold; /* Bold text */
-            background-color: #e6ffe6; /* Light red background for better visibility */
-            padding: 2px 4px; /* Slight padding */
-            border-radius: 3px; /* Rounded corners */
+            color: #28a745;
+            font-weight: bold;
+            background-color: #d4edda;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        /* Additional Styling */
+        .info-section {
+            margin-bottom: 15px;
+        }
+        details summary {
+            font-size: 1.1em;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.95em;
         }
     </style>
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
@@ -122,13 +108,14 @@
 
     /**
      * Function to escape HTML characters to prevent XSS attacks.
+     * Converts the input to a string to handle non-string inputs gracefully.
      */
     function escapeHtml(unsafe) {
-        return unsafe.replace(/&/g, "&amp;")
-                     .replace(/</g, "&lt;")
-                     .replace(/>/g, "&gt;")
-                     .replace(/"/g, "&quot;")
-                     .replace(/'/g, "&#039;");
+        return String(unsafe).replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&#039;");
     }
 
     /**
@@ -151,80 +138,97 @@
      */
     function displayError(message) {
         const container = document.getElementById('test-case-container');
-        container.innerHTML = `<p class="error">${message}</p>`;
+        container.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> ${escapeHtml(message)}
+            </div>
+        `;
+    }
+
+    /**
+     * Function to map test result to CSS class.
+     */
+    function getResultClass(result) {
+        switch(result.toLowerCase()) {
+            case 'success':
+            case 'passed':
+                return 'result-success';
+            case 'failed':
+            case 'error':
+                return 'result-failure';
+            case 'skipped':
+                return 'result-skipped';
+            default:
+                return 'result-unknown';
+        }
     }
 
     /**
      * Function to display a test case
      */
     function displayTestCase(testCase) {
-        var container = document.getElementById('test-case-container');
+        const container = document.getElementById('test-case-container');
         container.innerHTML = ''; // Clear previous content
 
-        var testCaseDiv = document.createElement('div');
+        const testCaseDiv = document.createElement('div');
         testCaseDiv.className = 'test-case';
 
-        var title = document.createElement('h2');
-        title.textContent = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');
+        const title = document.createElement('h2');
+        title.innerHTML = `<i class="fas fa-vial"></i> ${escapeHtml(testCase.class_name)}${testCase.test_name ? '.' + escapeHtml(testCase.test_name) : ''}`;
         testCaseDiv.appendChild(title);
-        document.title = testCase.class_name + (testCase.test_name ? '.' + testCase.test_name : '');
+        document.title = `TestPulse - ${testCase.class_name}${testCase.test_name ? '.' + testCase.test_name : ''}`;
 
-        var projectName = document.createElement('p');
-        projectName.innerHTML = '<span class="label">Project Name:</span> ' + testCase.project_name;
-        testCaseDiv.appendChild(projectName);
+        // Information Sections
+        const infoSections = [
+            { label: 'Project Name', value: testCase.project_name },
+            { label: 'Package', value: testCase.package },
+            { label: 'Class Name', value: testCase.class_name },
+        ];
 
-        var packageName = document.createElement('p');
-        packageName.innerHTML = '<span class="label">Package:</span> ' + testCase.package;
-        testCaseDiv.appendChild(packageName);
-
-        var className = document.createElement('p');
-        className.innerHTML = '<span class="label">Class Name:</span> ' + testCase.class_name;
-        testCaseDiv.appendChild(className);
-
-        var testName = document.createElement('p');
         if (testCase.test_name) {
-            testName.innerHTML = '<span class="label">Test Name:</span> ' + testCase.test_name;
-            testCaseDiv.appendChild(testName);
+            infoSections.push({ label: 'Test Name', value: `<span class="test-name">${escapeHtml(testCase.test_name)}</span>` });
         }
 
-        var result = document.createElement('p');
-        result.innerHTML = '<span class="label">Result:</span> ' + testCase.result;
-        testCaseDiv.appendChild(result);
+        infoSections.push({ label: 'Result', value: `<span class="${getResultClass(testCase.result)}">${escapeHtml(testCase.result)}</span>` });
+        infoSections.push({ label: 'Time', value: `${escapeHtml(testCase.time)} seconds` });
 
-        var time = document.createElement('p');
-        time.innerHTML = '<span class="label">Time:</span> ' + testCase.time + ' seconds';
-        testCaseDiv.appendChild(time);
+        infoSections.forEach(section => {
+            const p = document.createElement('p');
+            p.className = 'info-section';
+            p.innerHTML = `<span class="label">${section.label}:</span> ${section.value}`;
+            testCaseDiv.appendChild(p);
+        });
 
+        // Stack Trace
         if (testCase.stack_trace) {
-            var stackTrace = document.createElement('div');
-            stackTrace.innerHTML = '<span class="label">Stack Trace:</span>';
-            var pre = document.createElement('pre');
-            pre.innerHTML = highlightLines(testCase.stack_trace, testCase.class_name);
-            stackTrace.appendChild(pre);
-            testCaseDiv.appendChild(stackTrace);
+            const stackTraceDiv = document.createElement('div');
+            stackTraceDiv.className = 'mb-3';
+            stackTraceDiv.innerHTML = `
+                <span class="label">Stack Trace:</span>
+                <pre>${highlightLines(testCase.stack_trace, testCase.class_name)}</pre>
+            `;
+            testCaseDiv.appendChild(stackTraceDiv);
         }
 
-        // **Add Collapsible System Out**
+        // Collapsible System Out
         if (testCase.system_out) {
-            var systemOutDetails = document.createElement('details');
-            var systemOutSummary = document.createElement('summary');
-            systemOutSummary.textContent = 'System Out';
-            var systemOutPre = document.createElement('pre');
-            systemOutPre.innerHTML = highlightLines(testCase.system_out, testCase.class_name);
-            systemOutDetails.appendChild(systemOutSummary);
-            systemOutDetails.appendChild(systemOutPre);
+            const systemOutDetails = document.createElement('details');
+            systemOutDetails.className = 'mb-3';
+            systemOutDetails.innerHTML = `
+                <summary><i class="fas fa-info-circle"></i> System Out</summary>
+                <pre>${highlightLines(testCase.system_out, testCase.class_name)}</pre>
+            `;
             testCaseDiv.appendChild(systemOutDetails);
         }
 
-        // **Add Collapsible System Err**
+        // Collapsible System Err
         if (testCase.system_err) {
-            var systemErrDetails = document.createElement('details');
-            var systemErrSummary = document.createElement('summary');
-            systemErrSummary.textContent = 'System Error';
-            var systemErrPre = document.createElement('pre');
-            systemErrPre.innerHTML = highlightLines(testCase.system_err, testCase.class_name);
-            systemErrDetails.appendChild(systemErrSummary);
-            systemErrDetails.appendChild(systemErrPre);
+            const systemErrDetails = document.createElement('details');
+            systemErrDetails.className = 'mb-3';
+            systemErrDetails.innerHTML = `
+                <summary><i class="fas fa-exclamation-circle"></i> System Error</summary>
+                <pre>${highlightLines(testCase.system_err, testCase.class_name)}</pre>
+            `;
             testCaseDiv.appendChild(systemErrDetails);
         }
 
