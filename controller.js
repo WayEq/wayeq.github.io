@@ -600,13 +600,14 @@ async function fetchAndDisplayTestResults(filename) {
         // Extract metadata
         const executionTime = testResultsData.execution_time;
         const testBranch = testResultsData.test_branch;
+        const glideCommit = testResultsData.glide_commit_hash;
         const testResults = testResultsData.test_results; // The array of test results
 
         // Process the test results data
         processTestResultsData(testResults);
 
         // Display metadata in the UI
-        displayTestMetadata(executionTime, testBranch);
+        displayTestMetadata(executionTime, testBranch, glideCommit);
     } catch (error) {
         console.error('Error fetching test results:', error);
     }
@@ -658,16 +659,17 @@ function calculateTestCounts(testData) {
     };
 }
 
-function displayTestMetadata(executionTime, testBranch) {
+function displayTestMetadata(executionTime, testBranch, glideCommit) {
     const metadataContainer = document.getElementById('testMetadata');
 
     // Format the execution time (optional)
     const formattedExecutionTime = new Date(executionTime).toLocaleString();
 
+	const commit = glideCommit ? ` (${glideCommit})` : '';
     // Update the content
     metadataContainer.innerHTML = `
         <p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
-        <p><strong><i class="fas fa-code-branch"></i> Test Branch:</strong> ${testBranch}</p>
+        <p><strong><i class="fas fa-code-branch"></i> Branch:</strong> ${testBranch}${commit}</p>
     `;
 }
 

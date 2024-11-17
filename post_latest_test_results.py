@@ -28,16 +28,16 @@ def load_test_results(json_path):
         print(f"Unexpected error: {e}")
         sys.exit(1)
 
-def get_latest_result(test_results):
+def sort_test_results(test_results):
     """
-    Identify the latest test result based on 'execution_time'.
+    Sort the test results based on 'execution_time' in ascending order.
     """
     try:
-        latest = max(
+        sorted_results = sorted(
             test_results,
             key=lambda x: datetime.datetime.strptime(x['execution_time'], '%Y-%m-%d %H:%M:%S')
         )
-        return latest
+        return sorted_results
     except KeyError as e:
         print(f"Missing expected key in test result: {e}")
         sys.exit(1)
@@ -45,19 +45,47 @@ def get_latest_result(test_results):
         print(f"Error parsing 'execution_time': {e}")
         sys.exit(1)
 
-def generate_message(latest_result):
+def calculate_deltas(latest, previous):
     """
-    Generate a formatted message string from the latest test result.
+    Calculate the delta counts between the latest and previous test results.
+    """
+    deltas = {}
+    categories = ['passed', 'failed', 'skipped']
+    for category in categories:
+        latest_count = latest['counts'].get(category, 0)
+        previous_count = previous['counts'].get(category, 0)
+        delta = latest_count - previous_count
+        if delta > 0:
+            deltas[category] = f"(+{delta})"
+        elif delta < 0:
+            deltas[category] = f"({delta})"
+        else:
+            deltas[category] = "(±0)"
+    return deltas
+
+def generate_message(latest_result, deltas=None):
+    """
+    Generate a formatted message string from the latest test result,
+    including delta counts if provided.
     """
     message = (
         f"**Integration Test Results** (*{latest_result['test_branch']}*)\n"
         f"**Execution Time:** {latest_result['execution_time']}\n\n"
-        f"- Passed: {latest_result['counts']['passed']}\n"
-        f"- Failed: {latest_result['counts']['failed']}\n"
-        f"- Error: {latest_result['counts']['error']}\n"
-        f"- Skipped: {latest_result['counts']['skipped']}\n\n"
-        f"[View Detailed Results](https://wayeq.github.io/idr-test-velocity.html)"
     )
+
+    # Define the categories to display
+    categories = ['passed', 'failed', 'skipped', 'error']
+
+    for category in categories:
+        count = latest_result['counts'].get(category, 0)
+        # Capitalize the category name for display
+        category_display = category.capitalize()
+        if deltas and category in deltas:
+            message += f"- {category_display}: {count} {deltas[category]}\n"
+        else:
+            message += f"- {category_display}: {count}\n"
+
+    message += "\n[View Detailed Results](https://wayeq.github.io/idr-test-velocity.html)"
     print(message)
     return message
 
@@ -122,15 +150,27 @@ def main():
         print("No test results found in the JSON file.")
         sys.exit(0)
 
-    # Get the latest test result
-    latest_result = get_latest_result(test_results)
+    # Sort test results by execution_time
+    sorted_results = sort_test_results(test_results)
 
-    # Generate the message
-    message = generate_message(latest_result)
+    # Get the latest test result
+    latest_result = sorted_results[-1]
+
+    # Initialize deltas
+    deltas = None
+
+    # Check if there is a previous test result to compare with
+    if len(sorted_results) >= 2:
+        previous_result = sorted_results[-2]
+        deltas = calculate_deltas(latest_result, previous_result)
+    else:
+        print("No previous test results found. Delta counts will not be displayed.")
+
+    # Generate the message with deltas if available
+    message = generate_message(latest_result, deltas)
 
     # Post the message to the webhook
     post_via_curl(webhook_url, message)
 
 if __name__ == "__main__":
     main()
-
