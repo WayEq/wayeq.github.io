@@ -552,4 +552,110 @@ select {
     margin: 0 5px;
 }
 
+/* Commit Deltas Section Styling */
 
+/* Style for the details-section container */
+.details-section {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Toggle Button Style */
+.toggle-button {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.toggle-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Collapsible Content */
+.collapsible-content {
+    overflow: hidden;
+    transition: height 0.3s ease;
+    height: 0;
+}
+
+/* Expanded state */
+.collapsible-content.expanded {
+    /* Height is set dynamically in JavaScript */
+}
+
+/* Commit Deltas Table */
+.commit-deltas-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.commit-deltas-table th,
+.commit-deltas-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.commit-deltas-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.commit-deltas-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Style for commit hash links */
+.commit-deltas-table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.commit-deltas-table a:hover {
+    text-decoration: underline;
+}
+
+/* Optional: Style for the repository column */
+.commit-deltas-table td:first-child {
+    font-weight: bold;
+}
+
+/* Style for the commit message to wrap text */
+.commit-deltas-table td:last-child {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Hover effect on table rows */
+.commit-deltas-table tbody tr:hover {
+    background-color: #e6f7ff;
+}
+
+/* Style for the date column */
+.commit-deltas-table td:nth-child(4) {
+    min-width: 150px;
+}
+
+/* Media Query for Responsive Design */
+@media screen and (max-width: 768px) {
+    .commit-deltas-table th,
+    .commit-deltas-table td {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+    .toggle-button {
+        width: 100%;
+    }
+}

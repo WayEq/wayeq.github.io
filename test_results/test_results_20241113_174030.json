@@ -1,6 +1,8 @@
 {
     "execution_time": "2024-11-13 17:38:41",
     "test_branch": "track/idrhermes",
+    "glide_commit_hash": "c6f1bc8b5682",
+    "glide_test_commit_hash": "66a820b51c61",
     "test_results": [
         {
             "project_name": "snc-idr-test",

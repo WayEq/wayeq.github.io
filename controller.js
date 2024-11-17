@@ -6,9 +6,10 @@ let testResultsPieChart;
 let testRunData = [];
 let trendChart;
 
+// Add a variable to store the commit deltas data
+let commitDeltasData = [];
+
 // Utility function to get URL parameters as an object.
-// Example: ?project=snc-idr-test&class=ExampleTest&test=testFailure&execution=test_run_1.json
-// Returns: { project: "snc-idr-test", class: "ExampleTest", test: "testFailure", execution: "test_run_1.json" }
 function getUrlParameters() {
     const params = {};
     const queryString = window.location.search.substring(1);
@@ -20,10 +21,9 @@ function getUrlParameters() {
     }
     return params;
 }
+
 /**
  * Returns the ordinal suffix for a given day.
- * @param {number} day - The day of the month.
- * @returns {string} The ordinal suffix ('st', 'nd', 'rd', 'th').
  */
 function getOrdinalSuffix(day) {
     if (day > 3 && day < 21) return 'th';
@@ -34,6 +34,7 @@ function getOrdinalSuffix(day) {
         default: return "th";
     }
 }
+
 /**
  * Function to handle the trend chart
  */
@@ -129,7 +130,7 @@ async function showTestResultTrendChart() {
                     }
                 },
                 plugins: {
-                    title: { // Added Title Configuration
+                    title: {
                         display: true,
                         text: 'Test Issues Trend',
                         font: {
@@ -140,7 +141,7 @@ async function showTestResultTrendChart() {
                             top: 10,
                             bottom: 30
                         },
-                        color: '#333' // Optional: Set the color of the title text
+                        color: '#333'
                     },
                     legend: {
                         position: 'bottom',
@@ -160,14 +161,14 @@ async function showTestResultTrendChart() {
 }
 
 // Function to fetch and populate test runs
-async function fetchTestRuns(desiredExecution = null) { // Accept desiredExecution as a parameter
+async function fetchTestRuns(desiredExecution = null) {
     try {
         const response = await fetch('test_results/test_results_index.json');
         const testRuns = await response.json();
         testRunData = testRuns;
 
         // Populate the test run selection dropdown
-        populateTestRunSelection(testRuns, desiredExecution); // Pass desiredExecution to the function
+        populateTestRunSelection(testRuns, desiredExecution);
 
         // If desiredExecution is not set, load the latest test run by default
         if (!desiredExecution && testRuns.length > 0) {
@@ -180,7 +181,7 @@ async function fetchTestRuns(desiredExecution = null) { // Accept desiredExecuti
     }
 }
 
-function populateTestRunSelection(testRuns, desiredExecution) { // Accept desiredExecution as a parameter
+function populateTestRunSelection(testRuns, desiredExecution) {
     const testRunSelect = document.getElementById('testRunSelect');
     testRunSelect.innerHTML = ''; // Clear existing options
 
@@ -196,6 +197,8 @@ function populateTestRunSelection(testRuns, desiredExecution) { // Accept desire
     testRunSelect.addEventListener('change', (event) => {
         const selectedFilename = event.target.value;
         fetchAndDisplayTestResults(selectedFilename);
+        // Update the commit deltas when the test run changes
+        populateCommitDeltasTable(selectedFilename);
     });
 
     // If desiredExecution is specified and exists, set it as selected
@@ -204,12 +207,16 @@ function populateTestRunSelection(testRuns, desiredExecution) { // Accept desire
         if (desiredOption) {
             testRunSelect.value = desiredExecution;
             fetchAndDisplayTestResults(desiredExecution);
+            // Update commit deltas
+            populateCommitDeltasTable(desiredExecution);
         } else {
             console.warn(`Desired execution "${desiredExecution}" not found. Loading the latest test run instead.`);
             if (testRuns.length > 0) {
                 const latestTestRun = testRuns[testRuns.length - 1];
                 testRunSelect.value = latestTestRun.filename;
                 fetchAndDisplayTestResults(latestTestRun.filename);
+                // Update commit deltas
+                populateCommitDeltasTable(latestTestRun.filename);
                 showTestResultTrendChart();
             }
         }
@@ -217,6 +224,9 @@ function populateTestRunSelection(testRuns, desiredExecution) { // Accept desire
         // If no desiredExecution, set the selected option to the latest test run
         if (testRuns.length > 0) {
             testRunSelect.selectedIndex = testRuns.length - 1;
+            // Update commit deltas
+            const latestTestRun = testRuns[testRuns.length - 1];
+            populateCommitDeltasTable(latestTestRun.filename);
         }
     }
 }
@@ -249,7 +259,7 @@ function createTestResultsPieChart(passed, failed, error, skipped) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: { // Added Title Configuration
+                title: {
                     display: true,
                     text: 'Test Results Distribution',
                     font: {
@@ -260,7 +270,7 @@ function createTestResultsPieChart(passed, failed, error, skipped) {
                         top: 10,
                         bottom: 30
                     },
-                    color: '#333' // Optional: Set the color of the title text
+                    color: '#333'
                 },
                 legend: {
                     position: 'bottom',
@@ -275,13 +285,13 @@ function createTestResultsPieChart(passed, failed, error, skipped) {
     });
 }
 
-// Reset the details table to the default message
+// Function to reset the details table
 function resetDetailsTable() {
     const detailsTableBody = document.getElementById('detailsTable').getElementsByTagName('tbody')[0];
     detailsTableBody.innerHTML = '';
     const row = document.createElement('tr');
     const noDataCell = document.createElement('td');
-    noDataCell.setAttribute('colspan', 5); // Updated colspan to 5 due to additional columns
+    noDataCell.setAttribute('colspan', 5);
     noDataCell.textContent = 'Please select a data point from the above graph to view details.';
     row.appendChild(noDataCell);
     detailsTableBody.appendChild(row);
@@ -290,7 +300,7 @@ function resetDetailsTable() {
     document.getElementById('detailsHeader').textContent = 'Details for Selected Month';
 }
 
-// Highlight author row in the author test count table
+// Function to highlight an author row
 function highlightAuthorRow(author) {
     // Remove previous highlights
     document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
@@ -406,19 +416,17 @@ function updateChart(monthlyData, chart, pieChart) {
     updateTestTypesPieChart(filteredData, pieChart);
 }
 
-// Function to update the pie chart
-function updateTestTypesPieChart(filteredData, pieChart) {
-    // Calculate total integration and unit tests from filteredData
-    const totalIntegrationTests = filteredData.reduce((sum, item) => sum + item.integration_count, 0);
-    const totalUnitTests = filteredData.reduce((sum, item) => sum + item.unit_count, 0);
-    const totalTests = totalIntegrationTests + totalUnitTests;
 
-    pieChart.data.datasets[0].data = [totalIntegrationTests, totalUnitTests];
-    pieChart.update();
+// Function to expand collapsible content
+function expandCollapsibleContent(contentElement) {
+    // Set the height to the scrollHeight
+    contentElement.style.height = contentElement.scrollHeight + 'px';
 
-    // Update the total tests count in the UI if applicable
-    document.getElementById('totalTests').textContent =
-        `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
+    // After the transition ends, set the height to 'auto'
+    contentElement.addEventListener('transitionend', function handler() {
+        contentElement.style.height = 'auto';
+        contentElement.removeEventListener('transitionend', handler);
+    });
 }
 
 // Function to generate the class coverage URL
@@ -572,6 +580,7 @@ function populateLatestTests(testMetadata) {
     });
 }
 
+
 // Function to fetch and display test results for a specific filename
 async function fetchAndDisplayTestResults(filename) {
     try {
@@ -608,20 +617,13 @@ async function fetchAndDisplayTestResults(filename) {
 
         // Display metadata in the UI
         displayTestMetadata(executionTime, testBranch, glideCommit);
+
+        // Update the commit deltas table
+        populateCommitDeltasTable(filename);
+
     } catch (error) {
         console.error('Error fetching test results:', error);
     }
-}
-
-function expandCollapsibleContent() {
-    // Set the height to the scrollHeight
-    collapsibleContent.style.height = collapsibleContent.scrollHeight + 'px';
-
-    // After the transition ends, set the height to 'auto'
-    collapsibleContent.addEventListener('transitionend', function handler() {
-        collapsibleContent.style.height = 'auto';
-        collapsibleContent.removeEventListener('transitionend', handler);
-    });
 }
 
 // Function to process and display the test results data
@@ -662,10 +664,10 @@ function calculateTestCounts(testData) {
 function displayTestMetadata(executionTime, testBranch, glideCommit) {
     const metadataContainer = document.getElementById('testMetadata');
 
-    // Format the execution time (optional)
+    // Format the execution time
     const formattedExecutionTime = new Date(executionTime).toLocaleString();
 
-	const commit = glideCommit ? ` (${glideCommit})` : '';
+    const commit = glideCommit ? ` (${glideCommit})` : '';
     // Update the content
     metadataContainer.innerHTML = `
         <p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
@@ -716,7 +718,6 @@ function formatCountWithDelta(metricType, currentCount, previousCount) {
     } else if (delta < 0) {
         deltaSymbol = `&darr; ${Math.abs(delta)}`;
         metricType === 'passedCount' ? deltaClass = 'delta-down' : deltaClass = 'delta-up';
-
     } else {
         deltaSymbol = ``;
         deltaClass = 'delta-same';
@@ -837,67 +838,111 @@ function applyTestResultsFilters() {
     populateTestResultsTable(filteredData);
 }
 
-
-/**
- * Function to fetch JSON data from a specific test run JSON file.
- */
-async function fetchTestRunData(filename) {
+// Function to load commit deltas data
+async function loadCommitDeltas() {
     try {
-        const response = await fetch(`test_results/${filename}`);
+        const response = await fetch('commit_deltas.json');
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.json();
-        return data;
+        commitDeltasData = await response.json();
+        // Optionally, you can call populateCommitDeltasTable here if needed
     } catch (error) {
-        displayError(`Failed to load test run data: ${error.message}`);
-        throw error;
+        console.error('Error loading commit deltas:', error);
+        displayError(`Failed to load commit deltas: ${error.message}`);
+    }
+}
+
+// Function to populate the commit deltas table
+function populateCommitDeltasTable(selectedFilename) {
+    const tableBody = document.querySelector('#commitDeltasTable tbody');
+    tableBody.innerHTML = ''; // Clear existing content
+
+    // Find the corresponding commit delta entry
+    const commitDeltaEntry = commitDeltasData.find(entry => entry.to_filename === selectedFilename);
+
+    if (commitDeltaEntry) {
+        const { glide_commits, glide_test_commits } = commitDeltaEntry;
+
+        // Combine commits from both repositories
+        const allCommits = [
+            ...glide_commits.map(commit => ({ repo: 'glide', ...commit })),
+            ...glide_test_commits.map(commit => ({ repo: 'glide-test', ...commit }))
+        ];
+
+        if (allCommits.length > 0) {
+            allCommits.forEach(commit => {
+                const row = document.createElement('tr');
+
+                // Repository
+                const repoCell = document.createElement('td');
+                repoCell.textContent = commit.repo;
+                row.appendChild(repoCell);
+
+                // Commit Hash (with link to commit)
+                const commitCell = document.createElement('td');
+                const commitLink = document.createElement('a');
+                commitLink.href = generateCommitUrl(commit.repo, commit.commit);
+                commitLink.target = '_blank';
+                commitLink.textContent = commit.commit.substring(0, 7); // Shorten hash for display
+                commitCell.appendChild(commitLink);
+                row.appendChild(commitCell);
+
+                // Author
+                const authorCell = document.createElement('td');
+                authorCell.textContent = commit.author;
+                row.appendChild(authorCell);
+
+                // Date
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(commit.date).toLocaleString();
+                row.appendChild(dateCell);
+
+                // Message
+                const messageCell = document.createElement('td');
+                messageCell.textContent = commit.message;
+                row.appendChild(messageCell);
+
+                tableBody.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            const noDataCell = document.createElement('td');
+            noDataCell.setAttribute('colspan', 5);
+            noDataCell.textContent = 'No new commits between the selected test run and the previous one.';
+            row.appendChild(noDataCell);
+            tableBody.appendChild(row);
+        }
+    } else {
+        const row = document.createElement('tr');
+        const noDataCell = document.createElement('td');
+        noDataCell.setAttribute('colspan', 5);
+        noDataCell.textContent = 'Commit data not available for the selected test run.';
+        row.appendChild(noDataCell);
+        tableBody.appendChild(row);
     }
 }
 
 /**
- * Function to fetch the index file and determine the latest test run.
- * @returns {Promise<string>} The filename of the latest test run.
+ * Generate a URL to the commit on your Git repository web interface.
  */
-async function fetchTestRunIndex() {
-    try {
-        const response = await fetch('test_results/test_results_index.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const indexData = await response.json();
-        if (!Array.isArray(indexData) || indexData.length === 0) {
-            throw new Error('No test runs available.');
-        }
-        return indexData;
-    } catch (error) {
-        displayError(`Failed to load test runs index: ${error.message}`);
-        throw error;
+function generateCommitUrl(repo, commitHash) {
+    let baseUrl;
+    if (repo === 'glide') {
+        baseUrl = 'https://code.devsnc.com/dev/glide/commit/';
+    } else if (repo === 'glide-test') {
+        baseUrl = 'https://code.devsnc.com/dev/glide-test/commit/';
+    } else {
+        baseUrl = '#';
     }
+    return `${baseUrl}${commitHash}`;
 }
 
 /**
- * Function to find a test case based on parameters.
+ * Function to display error messages to the user.
  */
-function findTestCase(testResults, params) {
-    const { project, class: classNameParam, test } = params;
-
-    if (!project || !classNameParam) {
-        displayError('Missing URL parameters. Please provide "project" and "class" parameters.');
-        return null;
-    }
-
-    const resolved_test = test ? test : "";
-
-    for (let testCase of testResults.test_results) {
-        if (testCase.project_name !== project) continue;
-        if (testCase.class_name === classNameParam && testCase.test_name === resolved_test) {
-            return testCase;
-        }
-    }
-
-    displayError('Test case not found. Please check the provided parameters.');
-    return null;
+function displayError(message) {
+    alert(message); // Simple alert for demonstration; consider a better UI in production
 }
 
 /**
@@ -908,15 +953,52 @@ async function init() {
     const desiredExecution = params.execution || null; // Get the 'execution' parameter if it exists
 
     try {
-        const indexData = await fetchTestRunIndex();
-        await fetchTestRuns(desiredExecution); // Pass desiredExecution to fetchTestRuns
+        // Load commit deltas data
+        await loadCommitDeltas();
 
-        // The rest of your existing initialization logic can remain here
+        // Fetch test runs and display data
+        await fetchTestRuns(desiredExecution);
+
+        // Add event listeners for the commit deltas toggle button
+        const toggleCommitsButton = document.getElementById('toggleCommitsButton');
+        const commitsCollapsibleContent = document.getElementById('commitsCollapsibleContent');
+
+        toggleCommitsButton.addEventListener('click', () => {
+            if (commitsCollapsibleContent.classList.contains('expanded')) {
+                // Collapse the content
+                commitsCollapsibleContent.style.height = commitsCollapsibleContent.scrollHeight + 'px';
+                commitsCollapsibleContent.offsetHeight; // Trigger reflow
+                commitsCollapsibleContent.style.height = '0';
+                commitsCollapsibleContent.classList.remove('expanded');
+                toggleCommitsButton.textContent = 'Show Commit Details';
+            } else {
+                // Expand the content
+                commitsCollapsibleContent.classList.add('expanded');
+                toggleCommitsButton.textContent = 'Hide Commit Details';
+                expandCollapsibleContent(commitsCollapsibleContent);
+            }
+        });
+
+        // Existing initialization logic...
+
     } catch (error) {
         console.error('Initialization error:', error);
     }
 }
+// Function to update the pie chart
+function updateTestTypesPieChart(filteredData, pieChart) {
+    // Calculate total integration and unit tests from filteredData
+    const totalIntegrationTests = filteredData.reduce((sum, item) => sum + item.integration_count, 0);
+    const totalUnitTests = filteredData.reduce((sum, item) => sum + item.unit_count, 0);
+    const totalTests = totalIntegrationTests + totalUnitTests;
 
+    pieChart.data.datasets[0].data = [totalIntegrationTests, totalUnitTests];
+    pieChart.update();
+
+    // Update the total tests count in the UI if applicable
+    document.getElementById('totalTests').textContent =
+        `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
+}
 // End functions
 
 // Run the init function when the page loads
@@ -1222,16 +1304,6 @@ fetch('test_analysis_results.json')
 const toggleDetailsButton = document.getElementById('toggleDetailsButton');
 const collapsibleContent = document.getElementById('collapsibleContent');
 
-
-document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
-document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
-
-// Flag to track if test results have been loaded
-let testResultsLoaded = false;
-
-testResultsLoaded = true;
-
-// Add event listener to the toggle button
 toggleDetailsButton.addEventListener('click', () => {
     if (collapsibleContent.classList.contains('expanded')) {
         // Collapse the content
@@ -1243,7 +1315,12 @@ toggleDetailsButton.addEventListener('click', () => {
     } else {
         collapsibleContent.classList.add('expanded');
         toggleDetailsButton.textContent = 'Hide Details';
-        expandCollapsibleContent();
+        expandCollapsibleContent(collapsibleContent);
     }
 });
 
+// Event listeners for filters
+document.getElementById('resultFilter').addEventListener('change', applyTestResultsFilters);
+document.getElementById('projectNameFilter').addEventListener('change', applyTestResultsFilters);
+
+// Rest of your existing controller.js code...
