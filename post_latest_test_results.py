@@ -4,8 +4,8 @@ import json
 import datetime
 import sys
 import os
-import urllib.request
 import subprocess
+import argparse
 
 def load_json_file(json_path):
     """
@@ -35,6 +35,7 @@ def sort_test_results(test_results):
             test_results,
             key=lambda x: datetime.datetime.strptime(x['execution_time'], '%Y-%m-%d %H:%M:%S')
         )
+
         return sorted_results
     except KeyError as e:
         print(f"Missing expected key in test result: {e}")
@@ -91,11 +92,11 @@ def format_commit(commit):
     if repo_url:
         commit_url = f"{repo_url}/commit/{commit_hash_full}"
         # Format the commit hash as a markdown link
-        commit_link = f"[{commit_hash_short}]({commit_url})"
+        commit_link = f"\"[{short_description}]({commit_url})\""
     else:
         # If no base URL is known for the repo, just display the short hash
         commit_link = commit_hash_short
-    return f"**[{repo}]** {commit_link} \"{short_description}\" by {author} on {date}"
+    return f"**[{repo}]** {commit_link} by {author} on {date}"
 
 def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
     """
@@ -111,7 +112,7 @@ def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
     categories = ['passed', 'failed', 'error', 'skipped']
 
     # Start the markdown table
-    message += "| Category | Count |\n"
+    message += "| Result | Count (delta) |\n"
     message += "|----------|-------|\n"
     for category in categories:
         count = latest_result['counts'].get(category, 0)
@@ -128,7 +129,7 @@ def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
         total_commits = len(glide_commits) + len(glide_test_commits)
 
         if total_commits > 0:
-            message += f"\n**Commits Between Test Runs ({total_commits}):**\n\n"
+            message += f"\n**Delta Commits ({total_commits}):**\n\n"
             # Combine commits and add 'repo' field
             all_commits = [{'repo': 'glide', **commit} for commit in glide_commits] + \
                           [{'repo': 'glide-test', **commit} for commit in glide_test_commits]
@@ -145,35 +146,9 @@ def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
                 remaining = total_commits - MAX_COMMITS_TO_DISPLAY
                 message += f"\n...and {remaining} more commits."
 
-    message += "\n\n[View Detailed Results](https://wayeq.github.io/idr-test-velocity.html)"
+    message += "\n\n\n[View Detailed Results](https://wayeq.github.io/idr-test-velocity.html)"
     print(message)
     return message
-
-def post_to_webhook(webhook_url, message):
-    """
-    Post the message to the specified webhook URL using urllib.
-    """
-    payload = json.dumps({"text": message}).encode('utf-8')
-    headers = {'Content-Type': 'application/json'}
-    print(f"Posting message to webhook: {webhook_url}")
-    req = urllib.request.Request(webhook_url, data=payload, headers=headers, method='POST')
-
-    try:
-        with urllib.request.urlopen(req) as response:
-            if response.status == 200:
-                print("Message posted successfully.")
-            else:
-                print(f"Failed to post message. Status code: {response.status}")
-                sys.exit(1)
-    except urllib.error.HTTPError as e:
-        print(f"HTTP error occurred: {e.code} - {e.reason}")
-        sys.exit(1)
-    except urllib.error.URLError as e:
-        print(f"URL error occurred: {e.reason}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        sys.exit(1)
 
 def post_via_curl(webhook_url, message):
     """
@@ -190,12 +165,26 @@ def post_via_curl(webhook_url, message):
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         print("Message posted successfully via curl.")
-        print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"Error posting message via curl: {e.stderr}")
         sys.exit(1)
 
+def parse_arguments():
+    """
+    Parse command-line arguments.
+    """
+    parser = argparse.ArgumentParser(description="Post test results to a webhook.")
+    parser.add_argument(
+        '--post', '-p',
+        action='store_true',
+        help='Post the message to the webhook if this flag is set.'
+    )
+    return parser.parse_args()
+
 def main():
+    # Parse command-line arguments
+    args = parse_arguments()
+
     # Paths to the JSON files
     test_results_json_path = 'test_results/test_results_index.json'
     commit_deltas_json_path = 'commit_deltas.json'
@@ -220,6 +209,7 @@ def main():
     # Get the latest test result
     latest_result = sorted_results[-1]
 
+    print(latest_result)
     # Initialize deltas and commit_deltas_entry
     deltas = None
     commit_deltas_entry = None
@@ -227,6 +217,7 @@ def main():
     # Check if there is a previous test result to compare with
     if len(sorted_results) >= 2:
         previous_result = sorted_results[-2]
+        print(previous_result)
         deltas = calculate_deltas(latest_result, previous_result)
 
         # Find the commit deltas entry corresponding to the latest test result
@@ -239,8 +230,11 @@ def main():
     # Generate the message with deltas and commit information if available
     message = generate_message(latest_result, deltas, commit_deltas_entry)
 
-    # Post the message to the webhook
-    post_via_curl(webhook_url, message)
+    # Post the message to the webhook only if the --post flag is set
+    if args.post:
+        post_via_curl(webhook_url, message)
+    else:
+        print("Post flag not set. Message will not be sent to the webhook.")
 
 if __name__ == "__main__":
     main()

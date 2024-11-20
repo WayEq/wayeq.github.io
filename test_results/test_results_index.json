@@ -99,13 +99,13 @@
         }
     },
     {
-        "filename": "test_results_20241119_234918.json",
-        "execution_time": "2024-11-19 23:49:18",
+        "filename": "test_results_20241120_095241.json",
+        "execution_time": "2024-11-20 09:52:41",
         "test_branch": "track/idrhermes",
         "counts": {
-            "passed": 902,
+            "passed": 906,
             "failed": 3,
-            "error": 12,
+            "error": 7,
             "skipped": 234
         }
     }

@@ -153,6 +153,10 @@ export async function renderTestExecutionResultTrendChart(failedData, errorData,
                 ]
             },
             options: {
+                interaction: {
+                    mode: 'point', // Try 'index' or 'point' if 'nearest' doesn't work
+                    intersect: false  // Set to false to allow tooltips when not directly intersecting a point
+                },
                 responsive: true,
                 scales: {
                     x: {
@@ -250,108 +254,6 @@ export function createTestResultsPieChart(passed, failed, error, skipped) {
             }
 
     });
-}
-
-export function updateAuthorshipCharts(monthlyData, chart, pieChart) {
-
-    const selectedAuthor = document.getElementById('authorFilter').value;
-    const selectedProject = document.getElementById('projectFilter').value;
-
-    // Get the selected time window from the radio buttons
-    const selectedTimeWindow = document.querySelector('input[name="timeWindow"]:checked').value;
-
-
-    const now = new Date();
-    let startDate;
-
-    // Determine the start date based on selected time window
-    switch (selectedTimeWindow) {
-        case 'last_6_months':
-            startDate = new Date(now);
-            startDate.setMonth(startDate.getMonth() - 6);
-            break;
-        case 'last_year': // Handling 'Last Year'
-            startDate = new Date(now);
-            startDate.setFullYear(startDate.getFullYear() - 1);
-            break;
-        case 'all':
-        default:
-            startDate = new Date(0); // Set to earliest possible date
-            break;
-    }
-
-    const filteredData = monthlyData
-        .filter(item => {
-            // Convert month string to a date object (assuming format 'YYYY-MM')
-            const [year, month] = item.month.split('-');
-            const itemDate = new Date(year, month); // Months are 0-indexed in JS Date
-            return itemDate >= startDate;
-        })
-        .map(item => {
-            let integrationCount;
-            let unitCount;
-
-            const filteredIntegrationDetails = item.integration_details.filter(detail =>
-                (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
-                (selectedProject === 'all' || detail.project === selectedProject)
-            );
-            const filteredUnitDetails = item.unit_details.filter(detail =>
-                (selectedAuthor === 'all' || detail.author === selectedAuthor) &&
-                (selectedProject === 'all' || detail.project === selectedProject)
-            );
-
-            integrationCount = filteredIntegrationDetails.length;
-            unitCount = filteredUnitDetails.length;
-
-            return {
-                month: item.month,
-                integration_count: integrationCount,
-                unit_count: unitCount,
-                integration_details: filteredIntegrationDetails,
-                unit_details: filteredUnitDetails
-            };
-        });
-
-    // Update chart data only
-
-    // Filter out only leading months with no data
-    const filteredDataWithoutLeadingZeros = removeLeadingEmptyMonths(filteredData);
-    const filteredLabels = filteredDataWithoutLeadingZeros.map(item => {
-        const [year, month] = item.month.split('-');
-        const correctedMonth = String(Number(month)).padStart(2, '0');
-        return `${year}-${correctedMonth}`;
-    });
-    chart.data.labels = filteredLabels;
-    chart.data.datasets[0].data = filteredDataWithoutLeadingZeros.map(item => item.integration_count);
-    chart.data.datasets[1].data = filteredDataWithoutLeadingZeros.map(item => item.unit_count);
-    chart.options.onClick = (e) => {
-        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-        if (activePoints.length > 0) {
-            const { index, datasetIndex } = activePoints[0];
-
-            // Get the selected month from filteredLabels
-            const selectedMonth = filteredLabels[index];
-
-            // Find the corresponding details in the filteredData
-            const selectedTestType = datasetIndex === 0 ? 'integration' : 'unit';
-
-            // Use the filteredData to get the details for the selected month
-            const selectedDetails = filteredDataWithoutLeadingZeros.find(item => {
-                const [year, month] = item.month.split('-');
-                return `${year}-${String(Number(month)).padStart(2, '0')}` === selectedMonth;
-            });
-
-            // Populate the authorship details table using the filtered data
-            if (selectedDetails) {
-                populateDetailsTableForMonth(selectedMonth, selectedTestType, {
-                    [selectedMonth]: selectedDetails
-                }).then(() => {});
-            }
-        }
-    };
-    chart.update();
-
-    updateTestTypesPieChart(filteredData, pieChart);
 }
 
 export function updateTestTypesPieChart(filteredData, pieChart) {

@@ -480,13 +480,13 @@ select {
 
 /* Specific styling for Trend Chart */
 .trend-chart-item {
-    height: 300px; /* Adjust as needed */
+    height: 300px;
 }
 
 /* Canvas Styling */
 .chart-item canvas {
-    width: 100% !important; /* Make canvas take full width of its container */
-    height: 100% !important; /* Make canvas take full height of its container */
+    /*width: 100% !important; !* Make canvas take full width of its container *!*/
+    /*height: 100% !important; !* Make canvas take full height of its container *!*/
     object-fit: contain; /* Ensure the chart fits within the container without distortion */
 }
 
