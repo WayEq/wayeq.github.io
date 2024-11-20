@@ -74,11 +74,28 @@ def format_commit(commit):
     """
     Format a single commit entry for display.
     """
-    commit_hash = commit['commit'][:7]  # Shorten the hash for display
+    repo = commit.get('repo', '')
+    commit_hash_full = commit['commit']
+    commit_hash_short = commit_hash_full[:7]  # Shorten the hash for display
     author = commit['author']
     date = commit['date']
     message = commit['message']
-    return f"- {commit_hash} by {author} on {date}\n  {message}"
+    # Get the first line of the commit message as the short description
+    short_description = message.split('\n')[0]
+    # Construct the commit URL
+    base_urls = {
+        'glide': 'https://code.devsnc.com/dev/glide',
+        'glide-test': 'https://code.devsnc.com/dev/glide-test'
+    }
+    repo_url = base_urls.get(repo, '')
+    if repo_url:
+        commit_url = f"{repo_url}/commit/{commit_hash_full}"
+        # Format the commit hash as a markdown link
+        commit_link = f"[{commit_hash_short}]({commit_url})"
+    else:
+        # If no base URL is known for the repo, just display the short hash
+        commit_link = commit_hash_short
+    return f"**[{repo}]** {commit_link} \"{short_description}\" by {author} on {date}"
 
 def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
     """
@@ -93,14 +110,16 @@ def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
     # Define the categories to display
     categories = ['passed', 'failed', 'error', 'skipped']
 
+    # Start the markdown table
+    message += "| Category | Count |\n"
+    message += "|----------|-------|\n"
     for category in categories:
         count = latest_result['counts'].get(category, 0)
-        # Capitalize the category name for display
         category_display = category.capitalize()
+        delta_str = ''
         if deltas and category in deltas:
-            message += f"- {category_display}: {count} {deltas[category]}\n"
-        else:
-            message += f"- {category_display}: {count}\n"
+            delta_str = f" {deltas[category]}"
+        message += f"| {category_display} | {count}{delta_str} |\n"
 
     # Include commit information if available
     if commit_deltas_entry:
@@ -109,25 +128,18 @@ def generate_message(latest_result, deltas=None, commit_deltas_entry=None):
         total_commits = len(glide_commits) + len(glide_test_commits)
 
         if total_commits > 0:
-            message += f"\n**Commits Between Test Runs ({total_commits}):**\n"
+            message += f"\n**Commits Between Test Runs ({total_commits}):**\n\n"
+            # Combine commits and add 'repo' field
+            all_commits = [{'repo': 'glide', **commit} for commit in glide_commits] + \
+                          [{'repo': 'glide-test', **commit} for commit in glide_test_commits]
             # Limit the number of commits to avoid overly long messages
             MAX_COMMITS_TO_DISPLAY = 5
-            commits_displayed = 0
 
-            for commit in glide_commits:
-                if commits_displayed >= MAX_COMMITS_TO_DISPLAY:
+            for idx, commit in enumerate(all_commits, start=1):
+                if idx > MAX_COMMITS_TO_DISPLAY:
                     break
                 formatted_commit = format_commit(commit)
-                message += f"{formatted_commit}\n"
-                commits_displayed += 1
-
-            if commits_displayed < MAX_COMMITS_TO_DISPLAY:
-                for commit in glide_test_commits:
-                    if commits_displayed >= MAX_COMMITS_TO_DISPLAY:
-                        break
-                    formatted_commit = format_commit(commit)
-                    message += f"{formatted_commit}\n"
-                    commits_displayed += 1
+                message += f"{idx}. {formatted_commit}\n"
 
             if total_commits > MAX_COMMITS_TO_DISPLAY:
                 remaining = total_commits - MAX_COMMITS_TO_DISPLAY
@@ -178,6 +190,7 @@ def post_via_curl(webhook_url, message):
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         print("Message posted successfully via curl.")
+        print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"Error posting message via curl: {e.stderr}")
         sys.exit(1)
@@ -215,7 +228,6 @@ def main():
     if len(sorted_results) >= 2:
         previous_result = sorted_results[-2]
         deltas = calculate_deltas(latest_result, previous_result)
-        print(f"LATEST: {latest_result} PREVIOUS: {previous_result}")
 
         # Find the commit deltas entry corresponding to the latest test result
         latest_filename = latest_result.get('filename')

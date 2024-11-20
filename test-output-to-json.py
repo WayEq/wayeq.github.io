@@ -258,7 +258,7 @@ def main():
     }
 
     # Generate timestamped filename
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    timestamp = execution_time_dt.strftime('%Y%m%d_%H%M%S')
     output_filename = f"test_results_{timestamp}.json"
     output_filepath = os.path.join(OUTPUT_DIR, output_filename)
 

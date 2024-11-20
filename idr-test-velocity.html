@@ -28,20 +28,22 @@
         </ul>
     </div>
 
-<!-- Test Run Selection -->
-<div class="test-run-selection">
-    <label for="testRunSelect">Select Test Run:</label>
-    <select id="testRunSelect">
-        <!-- Options will be populated dynamically -->
-    </select>
-</div>
+
     <!-- Latest Test Results Section -->
 <!-- Latest Test Results Section -->
-<div class="details-section" id="testResults">
+<!--<div class="test-execution-results-section" id="testResults">-->
     <div class="widget-container">
+
         <h2>Integration Test Results</h2>
         <div id="testMetadata" class="test-metadata">
             <!-- Execution Time and Test Branch will be displayed here -->
+        </div>
+        <!-- Test Run Selection -->
+        <div class="test-run-selection">
+            <label for="testRunSelect">Select Test Run:</label>
+            <select id="testRunSelect">
+                <!-- Options will be populated dynamically -->
+            </select>
         </div>
         <!-- Test Results Summary Cards -->
         <div class="test-results-summary-cards">
@@ -76,6 +78,8 @@
         <!-- Toggle Button -->
         <button id="toggleDetailsButton" class="collapsible toggle-button">Show Details</button>
 
+        <!-- Toggle Button for Commit Details -->
+        <button id="toggleCommitsButton" class="collapsible toggle-button">Show Commit Details</button>
         <!-- Collapsible Content -->
         <div id="collapsibleContent" class="collapsible-content">
             <!-- Filters for Test Results -->
@@ -109,9 +113,7 @@
         </div>
     </div>
         <!-- New Commit Deltas Section -->
-    <div class="details-section" id="commitDeltas">
-        <!-- Toggle Button for Commit Details -->
-        <button id="toggleCommitsButton" class="collapsible toggle-button">Show Commit Details</button>
+    <div class="test-execution-results-section" id="commitDeltas">
 
         <!-- Collapsible Content for Commit Details -->
         <div id="commitsCollapsibleContent" class="collapsible-content">
@@ -134,16 +136,43 @@
         </div>
     </div>
 
-</div>
+<!--</div>-->
 
 
-<h2 id="totalTests">Loading total number of existing tests...</h2>
+<h2 id="totalTests">Loading Test Counts...</h2>
+    <!-- Existing Filters -->
+    <div class="filters">
+        <!-- Filter by Author and Filter by Project -->
+        <label for="authorFilter">Filter by Author:</label>
+        <select id="authorFilter">
+            <option value="all">All Authors</option>
+            <!-- Author options populated dynamically -->
+        </select>
 
+        <label for="projectFilter">Filter by Project:</label>
+        <select id="projectFilter">
+            <option value="all">All Projects</option>
+            <!-- Project options populated dynamically -->
+        </select>
+    </div>
+    <!-- Time Window Radio Buttons -->
+    <div class="time-window-filters">
+        <label>Time Window:</label>
+
+        <input type="radio" id="timeWindowAll" name="timeWindow" value="all" checked>
+        <label for="timeWindowAll">All Time</label>
+
+        <input type="radio" id="timeWindowLast6Months" name="timeWindow" value="last_6_months">
+        <label for="timeWindowLast6Months">Last 6 Months</label>
+
+        <input type="radio" id="timeWindowLastYear" name="timeWindow" value="last_year">
+        <label for="timeWindowLastYear">Last Year</label>
+    </div>
 <!-- Updated section for the pie chart and latest tests list -->
 <div class="section-container">
     <div class="flex-container">
         <!-- Pie Chart Container -->
-        <div class="widget-container pie-chart-container">
+        <div class="hover-item widget-container pie-chart-container">
             <canvas id="pieChart"></canvas>
         </div>
 
@@ -162,36 +191,10 @@
     <canvas id="testsAddedTrendChart"></canvas>
 </div>
 
-<!-- Time Window Radio Buttons -->
-<div class="time-window-filters">
-    <label>Time Window:</label>
 
-    <input type="radio" id="timeWindowAll" name="timeWindow" value="all" checked>
-    <label for="timeWindowAll">All Time</label>
 
-    <input type="radio" id="timeWindowLast6Months" name="timeWindow" value="last_6_months">
-    <label for="timeWindowLast6Months">Last 6 Months</label>
 
-    <input type="radio" id="timeWindowLastYear" name="timeWindow" value="last_year">
-    <label for="timeWindowLastYear">Last Year</label>
-</div>
-
-<!-- Existing Filters -->
-<div class="filters">
-    <!-- Filter by Author and Filter by Project -->
-    <label for="authorFilter">Filter by Author:</label>
-    <select id="authorFilter">
-        <option value="all">All Authors</option>
-        <!-- Author options populated dynamically -->
-    </select>
-
-    <label for="projectFilter">Filter by Project:</label>
-    <select id="projectFilter">
-        <option value="all">All Projects</option>
-        <!-- Project options populated dynamically -->
-    </select>
-</div>
-<div class="details-section" id="details">
+<div class="test-execution-results-section" id="details">
     <h2 id="detailsHeader">Details for Selected Month</h2>
     <table class="details-table" id="detailsTable">
         <thead>
@@ -210,7 +213,7 @@
         </tbody>
     </table>
 </div>
-<div class="details-section" id="authorTestCount">
+<div class="test-execution-results-section" id="authorTestCount">
     <h2>Tests Added per Author</h2>
     <table class="author-table" id="authorTable">
         <thead>
@@ -225,6 +228,14 @@
     </table>
 </div>
 
-<script src="controller.js"></script>
+
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="data-fetching.js"></script>
+    <script type="module" src="chart-handling.js"></script>
+    <script type="module" src="test-results.js"></script>
+    <script type="module" src="commit-deltas.js"></script>
+    <script type="module" src="event-listeners.js"></script>
+    <script type="module" src="init.js"></script>
+    <script type="module" src="test-authorship.js"></script>
 </body>
 </html>
