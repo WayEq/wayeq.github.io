@@ -166,7 +166,7 @@
     /**
      * Function to display a test case
      */
-    function displayTestCase(testCase) {
+    function displayTestCase(testCase, execution) {
         const container = document.getElementById('test-case-container');
         container.innerHTML = ''; // Clear previous content
 
@@ -188,6 +188,31 @@
         if (testCase.test_name) {
             infoSections.push({ label: 'Test Name', value: `<span class="test-name">${escapeHtml(testCase.test_name)}</span>` });
         }
+
+		if (execution) {
+			const match = execution.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+
+			if (match) {
+				const [_, year, month, day, hour, minute, second] = match;
+
+				// Create a Date object
+				const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+
+				// Format the date to a human-readable string
+				const options = {
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+					hour: "2-digit",
+					minute: "2-digit",
+					second: "2-digit",
+					timeZoneName: "short"
+				};
+
+				const readableDate = date.toLocaleString("en-US", options);
+			    infoSections.push({ label: 'Execution', value: `<span>${readableDate}</span>` });
+			}
+		}
 
         infoSections.push({ label: 'Result', value: `<span class="${getResultClass(testCase.result)}">${escapeHtml(testCase.result)}</span>` });
         infoSections.push({ label: 'Time', value: `${escapeHtml(testCase.time)} seconds` });
@@ -253,33 +278,6 @@
     }
 
     /**
-     * Function to fetch the index file and determine the latest test run.
-     */
-    async function fetchLatestTestRunFilename() {
-        try {
-            const response = await fetch('test_results/test_results_index.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const indexData = await response.json();
-            if (!Array.isArray(indexData) || indexData.length === 0) {
-                throw new Error('No test runs available.');
-            }
-            // Assuming the index is sorted in chronological order. If not, sort it.
-            // Sort by filename timestamp descending (assuming filename format: test_results_<timestamp>.json)
-            indexData.sort((a, b) => {
-                const timestampA = a.filename.match(/test_results_(\d{8}_\d{6})\.json$/)[1];
-                const timestampB = b.filename.match(/test_results_(\d{8}_\d{6})\.json$/)[1];
-                return timestampB.localeCompare(timestampA);
-            });
-            return indexData[0].filename; // Latest test run
-        } catch (error) {
-            displayError(`Failed to load test runs index: ${error.message}`);
-            throw error;
-        }
-    }
-
-    /**
      * Function to find a test case based on parameters.
      */
     function findTestCase(testResults, params) {
@@ -309,13 +307,12 @@
     async function init() {
         const params = getUrlParameters();
         try {
-            const latestFilename = await fetchLatestTestRunFilename();
-            const testResultsData = await fetchTestRunData(latestFilename);
+            const testResultsData = await fetchTestRunData(params.execution);
             if (!testResultsData) return;
 
             const testCase = findTestCase(testResultsData, params);
             if (testCase) {
-                displayTestCase(testCase);
+                displayTestCase(testCase, params.execution);
             }
         } catch (error) {
             console.error('Initialization error:', error);

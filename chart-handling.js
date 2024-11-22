@@ -12,7 +12,6 @@ export async function renderVelocityAndAuthorshipTrendChart(integrationCounts, u
 
     // Create the line chart
     const ctx = document.getElementById('testsAddedTrendChart').getContext('2d');
-    console.log('Initializing chart with labels:', labels);
 
     // If the chart already exists, destroy it before creating a new one
     if (authorshipTrendChartInstance) {
@@ -255,21 +254,6 @@ export function createTestResultsPieChart(passed, failed, error, skipped) {
 
     });
 }
-
-export function updateTestTypesPieChart(filteredData, pieChart) {
-    // Calculate total integration and unit tests from filteredData
-    const totalIntegrationTests = filteredData.reduce((sum, item) => sum + item.integration_count, 0);
-    const totalUnitTests = filteredData.reduce((sum, item) => sum + item.unit_count, 0);
-    const totalTests = totalIntegrationTests + totalUnitTests;
-
-    pieChart.data.datasets[0].data = [totalIntegrationTests, totalUnitTests];
-    pieChart.update();
-
-    // Update the total tests count in the UI if applicable
-    document.getElementById('totalTests').textContent =
-        `Total Number of Existing Tests: ${totalTests} (Integration: ${totalIntegrationTests}, Unit: ${totalUnitTests})`;
-}
-
 
 export function showTestTypePieChart(totalIntegrationTests, totalUnitTests) {
     // Create the pie chart with the title

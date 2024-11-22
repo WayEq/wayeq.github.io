@@ -147,42 +147,6 @@ def update_index_file(output_filename, execution_time, test_branch, counts):
 import subprocess
 import os
 
-def get_current_commit_hash(repo_dir):
-    """
-    Retrieve the current commit hash (HEAD) of the Git repository.
-
-    Args:
-        repo_dir (str): Path to the Git repository directory.
-
-    Returns:
-        str: The current commit hash.
-
-    Raises:
-        FileNotFoundError: If the repo_dir does not exist.
-        subprocess.CalledProcessError: If the Git command fails.
-    """
-    if not os.path.isdir(repo_dir):
-        raise FileNotFoundError(f"The directory '{repo_dir}' does not exist.")
-
-    # Ensure the directory is a Git repository
-    git_dir = os.path.join(repo_dir, '.git')
-    if not os.path.isdir(git_dir):
-        raise ValueError(f"The directory '{repo_dir}' is not a Git repository.")
-
-    try:
-        # Execute the Git command to get the short commit hash
-        result = subprocess.run(
-            ['git', 'rev-parse', '--short', 'HEAD'],
-            cwd=repo_dir,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        commit_hash = result.stdout.strip()
-        return commit_hash
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Git command failed: {e.stderr}") from e
-
 def main():
     # Collect all test cases directly
     all_test_cases = []
@@ -238,8 +202,8 @@ def main():
     test_branch = execution_metadata.get('test_branch', '')
 
 	# Get the commit hash
-    glide_hash = get_current_commit_hash(GLIDE_REPO)
-    glide_test_hash = get_current_commit_hash(TEST_REPO)
+    glide_hash = execution_metadata.get('glide_commit', '')
+    glide_test_hash = execution_metadata.get('test_commit', '')
     # Prepare the final output JSON structure
     output_data = {
         'execution_time': execution_time_str,

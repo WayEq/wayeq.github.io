@@ -39,4 +39,4 @@ export async function init() {
         console.error('Initialization error:', error);
     }
 }
-init().then(() => console.log('Initialization complete'));
+init().then(() => {});

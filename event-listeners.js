@@ -36,13 +36,13 @@ export function addTestExecutionResultEventListeners(executionIndexData, commitD
     document.getElementById('resultFilter').addEventListener('change', () => {
         const executionFileName = testRunSelect.value;
         loadExecutionData(executionFileName).then(executionData => {
-            applyTestResultsFilters(executionData);
+            applyTestResultsFilters(executionData, executionIndexData.filename);
         });
     });
     document.getElementById('projectNameFilter').addEventListener('change', () => {
         const executionFileName = testRunSelect.value;
         loadExecutionData(executionFileName).then(executionData => {
-            applyTestResultsFilters(executionData);
+            applyTestResultsFilters(executionData, executionIndexData.filename);
         });
     });
 

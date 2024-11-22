@@ -17,8 +17,6 @@ export function resetAuthorshipDetailsTable() {
 }
 
 export async function renderTestVelocityAndAuthorshipSection(testAuthorshipData, author, project, selectedTimeWindow) {
-
-    console.log('Data loaded:', testAuthorshipData);
     const testMetadataAll = testAuthorshipData.test_metadata;
     const monthlyAggregates = testAuthorshipData.monthly_aggregates;
     const authorTestCountData = testAuthorshipData.author_test_count;
@@ -91,9 +89,7 @@ export async function renderTestVelocityAndAuthorshipSection(testAuthorshipData,
 
 
     const integrationCounts = monthlyData.map(item => item.integration_count);
-    console.log('Integration Counts:', integrationCounts);
     const unitCounts = monthlyData.map(item => item.unit_count);
-    console.log('Unit Counts:', unitCounts);
     const details = monthlyData.reduce((acc, item) => {
         acc[item.month] = {
             integration_details: item.integration_details,
@@ -142,11 +138,11 @@ export async function renderTestVelocityAndAuthorshipSection(testAuthorshipData,
         return `${year}-${correctedMonth}`;
     });
 
-    console.log('Labels:', labels);
+    const { trimmedIntegrationCounts, trimmedUnitCounts, trimmedLabels } = trimLeadingZeros(integrationCounts, unitCounts, labels);
 
-    await renderVelocityAndAuthorshipTrendChart(integrationCounts, unitCounts, details, labels, populateDetailsTableForMonth);
+    await renderVelocityAndAuthorshipTrendChart(trimmedIntegrationCounts, trimmedUnitCounts, details, trimmedLabels, populateDetailsTableForMonth);
 
-    const pieChart = showTestTypePieChart(totalIntegrationTests, totalUnitTests, authorTestCountData);
+    showTestTypePieChart(totalIntegrationTests, totalUnitTests, authorTestCountData);
 
     // Populate author test count table
     if (authorTestCountData) {
@@ -299,16 +295,48 @@ export async function populateDetailsTableForMonth(month, testType, details) {
     }
 }
 
+// Function to highlight an author row
+function highlightAuthorRow(author) {
+    // Remove previous highlights
+    document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
 
-function removeLeadingEmptyMonths(data) {
-    let hasEncounteredData = false;
-    return data.filter(item => {
-        if (item.integration_count > 0 || item.unit_count > 0) {
-            hasEncounteredData = true;  // Start keeping months once data is found
-        }
-        return hasEncounteredData;
-    });
+    // Highlight the new author row
+    const authorRow = document.getElementById(`author_${author.replace(/\s+/g, '_')}`);
+    if (authorRow) {
+        authorRow.classList.add('highlight');
+        // Scroll to the highlighted row
+        authorRow.scrollIntoView({ behavior: 'smooth' });
+    }
 }
+
+function trimLeadingZeros(numArray1, numArray2, labels) {
+    // Ensure all arrays have the same length
+    if (numArray1.length !== numArray2.length || numArray1.length !== labels.length) {
+        throw new Error("All arrays must have the same length.");
+    }
+
+    // Find the first index where at least one of the numeric arrays is non-zero
+    let trimIndex = 0;
+    while (
+        trimIndex < numArray1.length &&
+        numArray1[trimIndex] === 0 &&
+        numArray2[trimIndex] === 0
+        ) {
+        trimIndex++;
+    }
+
+    // Slice the arrays from the trimIndex to the end
+    const trimmedIntegrationCounts = numArray1.slice(trimIndex);
+    const trimmedUnitCounts = numArray2.slice(trimIndex);
+    const trimmedLabels = labels.slice(trimIndex);
+
+    return {
+        trimmedIntegrationCounts,
+        trimmedUnitCounts,
+        trimmedLabels
+    };
+}
+
 
 
 // Function to generate the class coverage URL

@@ -22,7 +22,7 @@ export async function displayTestResultsForExecution(executionFileName, compared
         const defaultFilteredData = executionResults.filter(test => test.result === 'failed' || test.result === 'error');
 
         // Populate the test results table with filtered data
-        populateTestResultsTable(defaultFilteredData);
+        populateTestResultsTable(defaultFilteredData, executionFileName);
 
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
@@ -144,7 +144,7 @@ export function formatCountWithDelta(metricType, currentCount, previousCount) {
 
 }
 
-export function populateTestResultsTable(testExecutionResultsData) {
+export function populateTestResultsTable(testExecutionResultsData, executionFileName) {
     const tableBody = document.querySelector('#testResultsTable tbody');
     tableBody.innerHTML = ''; // Clear existing rows
 
@@ -209,7 +209,8 @@ export function populateTestResultsTable(testExecutionResultsData) {
                         window.open(
                             'test-result.html?project=' + encodeURIComponent(test.project_name) +
                             '&class=' + encodeURIComponent(test.class_name) +
-                            '&test=' + encodeURIComponent(test.test_name),
+                            '&test=' + encodeURIComponent(test.test_name)
+                            + '&execution=' + encodeURIComponent(executionFileName),
                             '_blank'
                         );
                     };
@@ -240,7 +241,7 @@ export function populateTestResultsFilters(testResultsData) {
     });
 }
 
-export function applyTestResultsFilters(executionResults) {
+export function applyTestResultsFilters(executionResults, executionFileName) {
     const selectedResult = document.getElementById('resultFilter').value;
     const selectedProject = document.getElementById('projectNameFilter').value;
 
@@ -255,7 +256,7 @@ export function applyTestResultsFilters(executionResults) {
     }
 
     // Update the summary and table with the filtered data
-    populateTestResultsTable(filteredData);
+    populateTestResultsTable(filteredData, executionFileName);
 
 }
 
