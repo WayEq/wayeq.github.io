@@ -16,7 +16,8 @@ PROJECTS = [
     'idr-test',
     'idr-di-test',
     'idr-di-test-frontend',
-    'idr-test-frontend'
+    'idr-test-frontend',
+    'idr-di-dct-test'
 ]
 
 # Output directory for JSON files

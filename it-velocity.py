@@ -18,7 +18,8 @@ integration_projects = [
    "idr-test-frontend",
    "idr-di-test-frontend",
    "glide-idr-di-test",
-   "snc-idr-test"
+   "snc-idr-test",
+   "idr-di-dct-test"
 ]
 
 synonyms = {
@@ -223,7 +224,7 @@ output_data = {
     "author_test_count": author_test_count_sorted
 }
 
-output_file = "tsest_analysis_results.json"
+output_file = "test_analysis_results.json"
 with open(output_file, 'w') as f:
     json.dump(output_data, f, indent=4)
 
