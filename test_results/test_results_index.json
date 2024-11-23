@@ -121,12 +121,12 @@
         }
     },
     {
-        "filename": "test_results_20241122_113924.json",
-        "execution_time": "2024-11-22 11:39:24",
+        "filename": "test_results_20241123_005250.json",
+        "execution_time": "2024-11-23 00:52:50",
         "test_branch": "track/idrhermes",
         "counts": {
-            "passed": 1155,
-            "failed": 9,
+            "passed": 1110,
+            "failed": 7,
             "error": 0,
             "skipped": 232
         }

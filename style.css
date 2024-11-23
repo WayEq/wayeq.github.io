@@ -145,6 +145,7 @@ select, input[type="radio"] {
     border: 1px solid #ccc;
     width: 100%;
 }
+
 .time-window-filters {
     display: flex;
     justify-content: center;
@@ -170,7 +171,6 @@ select, input[type="radio"] {
     margin: 0;
     font-weight: normal;
 }
-
 
 /* Summary Cards */
 .test-results-summary-cards {
@@ -240,6 +240,28 @@ select, input[type="radio"] {
     color: var(--secondary-color);
 }
 
+/* Status Styles for Modal and Tables */
+.status-passed {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.status-failed {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.status-error {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+
+.status-skipped {
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
+
 /* Charts Container */
 .charts-container {
     display: flex;
@@ -249,7 +271,7 @@ select, input[type="radio"] {
 }
 
 .chart-item {
-    flex: 1 1 calc(0% - 20px);
+    flex: 1 1 calc(50% - 20px);
     background-color: #fff;
     border-radius: 8px;
     padding: 20px;
@@ -389,10 +411,6 @@ td a:hover {
         flex-direction: column;
     }
 
-    /*.time-window-filters {*/
-    /*    flex-wrap: wrap;*/
-    /*}*/
-
     .toggle-button {
         width: 100%;
         margin-bottom: 10px;
@@ -435,7 +453,6 @@ td a:hover {
     background-color: #ffeb3b !important;
 }
 
-
 #testsAddedTrendChartContainer {
     height: 300px; /* Adjust this value as needed */
 }
@@ -445,40 +462,114 @@ td a:hover {
     height: 100% !important;
 }
 
+/* Delta Span Styles */
 .delta {
+    cursor: pointer;
     font-size: 0.5em;
-    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: underline;
 }
 
 .delta-up {
-    color: green;
+    color: var(--success-color);
 }
 
 .delta-down {
-    color: red;
+    color: var(--danger-color);
 }
 
 .delta-same {
-    color: gray;
+    color: var(--secondary-color);
 }
 
+.delta:hover {
+    color: var(--primary-color);
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto; /* 5% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Adjust as needed */
+    border-radius: 8px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Delta Details Table */
+.delta-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.delta-table th, .delta-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.delta-table th {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.delta-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.delta-table tr:hover {
+    background-color: #e6f7ff;
+}
+
+/* Test Results Table Status Colors */
 .test-results-table td.passed {
-    color: #28a745; /* Green */
+    color: var(--success-color);
     font-weight: bold;
 }
 
 .test-results-table td.failed {
-    color: #dc3545; /* Red */
+    color: var(--danger-color);
     font-weight: bold;
 }
 
 .test-results-table td.error {
-    color: #ffc107; /* Yellow */
+    color: var(--warning-color);
     font-weight: bold;
 }
 
 .test-results-table td.skipped {
-    color: #6c757d; /* Grey */
+    color: var(--secondary-color);
     font-weight: bold;
 }
 
@@ -486,7 +577,7 @@ td a:hover {
     padding: 5px 10px;
     font-size: 0.9em;
     cursor: pointer;
-    background-color: #007bff;
+    background-color: var(--primary-color);
     color: #fff;
     border: none;
     border-radius: 4px;

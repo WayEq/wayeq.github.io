@@ -1,18 +1,31 @@
 // test-results.js
 
-import {createTestResultsPieChart, renderTestExecutionResultTrendChart} from './chart-handling.js';
-import {getOrdinalSuffix, groupBy} from './utils.js';
+import { createTestResultsPieChart, renderTestExecutionResultTrendChart } from './chart-handling.js';
+import { getOrdinalSuffix, groupBy } from './utils.js';
+import { loadExecutionData } from './data-fetching.js'; // Import loadExecutionData to fetch previous execution data
 
+// Global variables to store current and previous test results
+let currentTestResults = [];
+let previousTestResults = [];
 
 export async function displayTestResultsForExecution(executionFileName, comparedExecutionFileName, executionIndexData, executionData) {
     try {
-
         // Extract metadata
         const executionTime = executionData.execution_time;
         const testBranch = executionData.test_branch;
         const glideCommit = executionData.glide_commit_hash;
         const executionResults = executionData.test_results; // The array of test results
 
+        // Store current test results globally
+        currentTestResults = executionResults;
+
+        // Load previous test results if available
+        if (comparedExecutionFileName !== null) {
+            const previousExecutionData = await loadExecutionData(comparedExecutionFileName);
+            previousTestResults = previousExecutionData.test_results;
+        } else {
+            previousTestResults = []; // Empty array if no previous data
+        }
 
         displayTestMetadata(executionTime, testBranch, glideCommit);
 
@@ -27,7 +40,7 @@ export async function displayTestResultsForExecution(executionFileName, compared
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
 
-        // Prepare data for the chart
+        // Prepare data for the trend chart
         const labels = [];
         const failedData = [];
         const errorData = [];
@@ -88,23 +101,24 @@ export async function populateTestExecutionDropdown(executionFileName, execution
 }
 
 function renderTestResultsCardsAndPieChart(executionFileName, comparedExecutionFileName, executionIndexData) {
-
     // Calculate counts for current test run
     const currentCounts = executionIndexData.filter(e => e.filename === executionFileName)[0].counts;
 
     // Calculate counts for previous test run (if available)
     let previousCounts = null;
     if (comparedExecutionFileName !== null && executionIndexData && executionIndexData.length > 0) {
-        previousCounts = executionIndexData.filter(e => e.filename === comparedExecutionFileName)[0].counts;
+        const previousExecution = executionIndexData.filter(e => e.filename === comparedExecutionFileName)[0];
+        if (previousExecution) {
+            previousCounts = previousExecution.counts;
+        }
     }
 
-    // Proceed to update the test results summary with counts and deltas
+    // Update the test results summary with counts and deltas
     // Update counts
-    document.getElementById('passedCount').innerHTML = formatCountWithDelta('passedCount', currentCounts.passed, previousCounts ? previousCounts.passed : null);
-    document.getElementById('failedCount').innerHTML = formatCountWithDelta('failedCount', currentCounts.failed, previousCounts ? previousCounts.failed : null);
-    document.getElementById('errorCount').innerHTML = formatCountWithDelta('errorCount', currentCounts.error, previousCounts ? previousCounts.error : null);
-    document.getElementById('skippedCount').innerHTML = formatCountWithDelta('skippedCount', currentCounts.skipped, previousCounts ? previousCounts.skipped : null);
-
+    document.getElementById('passedCount').innerHTML = formatCountWithDelta('passedCount', 'passedDelta', currentCounts.passed, previousCounts ? previousCounts.passed : null);
+    document.getElementById('failedCount').innerHTML = formatCountWithDelta('failedCount', 'failedDelta', currentCounts.failed, previousCounts ? previousCounts.failed : null);
+    document.getElementById('errorCount').innerHTML = formatCountWithDelta('errorCount', 'errorDelta', currentCounts.error, previousCounts ? previousCounts.error : null);
+    document.getElementById('skippedCount').innerHTML = formatCountWithDelta('skippedCount', 'skippedDelta', currentCounts.skipped, previousCounts ? previousCounts.skipped : null);
 
     // Create or update the pie chart
     createTestResultsPieChart(currentCounts.passed, currentCounts.failed, currentCounts.error, currentCounts.skipped);
@@ -119,7 +133,7 @@ export function calculateTestCounts(testData) {
     };
 }
 
-export function formatCountWithDelta(metricType, currentCount, previousCount) {
+export function formatCountWithDelta(metricType, spanId, currentCount, previousCount) {
     if (previousCount === null) {
         // No previous data, just display the current count
         return `${currentCount}`;
@@ -130,18 +144,17 @@ export function formatCountWithDelta(metricType, currentCount, previousCount) {
     let deltaClass = '';
 
     if (delta > 0) {
-        deltaSymbol = `&uarr; ${delta}`;
+        deltaSymbol = `<i class="fas fa-arrow-up"></i> ${delta}`;
         metricType === 'passedCount' ? deltaClass = 'delta-up' : deltaClass = 'delta-down';
     } else if (delta < 0) {
-        deltaSymbol = `&darr; ${Math.abs(delta)}`;
+        deltaSymbol = `<i class="fas fa-arrow-down"></i> ${Math.abs(delta)}`;
         metricType === 'passedCount' ? deltaClass = 'delta-down' : deltaClass = 'delta-up';
     } else {
-        deltaSymbol = ``;
+        deltaSymbol = `<i class="fas fa-minus"></i> 0`;
         deltaClass = 'delta-same';
     }
 
-    return `${currentCount} <span class="delta ${deltaClass}">${deltaSymbol}</span>`;
-
+    return `${currentCount} <span id=${spanId} class="delta ${deltaClass}">${deltaSymbol}</span>`;
 }
 
 export function populateTestResultsTable(testExecutionResultsData, executionFileName) {
@@ -209,8 +222,8 @@ export function populateTestResultsTable(testExecutionResultsData, executionFile
                         window.open(
                             'test-result.html?project=' + encodeURIComponent(test.project_name) +
                             '&class=' + encodeURIComponent(test.class_name) +
-                            '&test=' + encodeURIComponent(test.test_name)
-                            + '&execution=' + encodeURIComponent(executionFileName),
+                            '&test=' + encodeURIComponent(test.test_name) +
+                            '&execution=' + encodeURIComponent(executionFileName),
                             '_blank'
                         );
                     };
@@ -248,7 +261,7 @@ export function applyTestResultsFilters(executionResults, executionFileName) {
     let filteredData = executionResults.test_results;
 
     if (selectedResult !== 'all') {
-        filteredData = filteredData.filter(test => test.result === "failed" || test.result === "error");
+        filteredData = filteredData.filter(test => test.result === 'failed' || test.result === 'error');
     }
 
     if (selectedProject !== 'all') {
@@ -257,7 +270,6 @@ export function applyTestResultsFilters(executionResults, executionFileName) {
 
     // Update the summary and table with the filtered data
     populateTestResultsTable(filteredData, executionFileName);
-
 }
 
 function displayTestMetadata(executionTime, testBranch, glideCommit) {
@@ -272,4 +284,161 @@ function displayTestMetadata(executionTime, testBranch, glideCommit) {
         <p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
         <p><strong><i class="fas fa-code-branch"></i> Branch:</strong> ${testBranch}${commit}</p>
     `;
+}
+
+// New function to show delta details
+export function showDeltaDetails(resultType) {
+    // Compute delta tests
+    const deltaTests = getDeltaTests(resultType);
+    // Display delta tests in the modal
+    displayDeltaModal(resultType, deltaTests);
+}
+
+// Function to compute the delta tests
+function getDeltaTests(resultType) {
+    const deltaTests = [];
+
+    // Create a map for previous test results
+    const previousTestMap = new Map();
+    previousTestResults.forEach(test => {
+        const key = `${test.project_name}|${test.class_name}|${test.test_name}`;
+        previousTestMap.set(key, test);
+    });
+
+    currentTestResults.forEach(currentTest => {
+        const key = `${currentTest.project_name}|${currentTest.class_name}|${currentTest.test_name}`;
+        const previousTest = previousTestMap.get(key);
+
+        if (previousTest) {
+            if (currentTest.result !== previousTest.result && (currentTest.result === resultType || previousTest.result === resultType)) {
+                deltaTests.push({
+                    testName: currentTest.test_name,
+                    className: currentTest.class_name,
+                    projectName: currentTest.project_name,
+                    previousResult: previousTest.result,
+                    currentResult: currentTest.result
+                });
+            }
+        } else {
+            // New test added in current run
+            if (currentTest.result === resultType) {
+                deltaTests.push({
+                    testName: currentTest.test_name,
+                    className: currentTest.class_name,
+                    projectName: currentTest.project_name,
+                    previousResult: 'Not Present',
+                    currentResult: currentTest.result
+                });
+            }
+        }
+    });
+
+    return deltaTests;
+}
+
+// Function to display the delta modal
+function displayDeltaModal(resultType, deltaTests) {
+    const modal = document.getElementById('deltaModal');
+    const modalTitle = document.getElementById('deltaModalTitle');
+    const modalBody = document.getElementById('deltaModalBody');
+    const closeModal = document.getElementById('closeDeltaModal');
+
+    // Set the title based on result type
+    modalTitle.innerText = `Tests Contributing to ${capitalizeFirstLetter(resultType)} Delta`;
+
+    // Clear previous content
+    modalBody.innerHTML = '';
+
+    if (deltaTests.length === 0) {
+        modalBody.innerHTML = '<p>No changes in this category.</p>';
+    } else {
+        // Create a table to display the test details
+        const table = document.createElement('table');
+        table.classList.add('delta-table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Test Name</th>
+                <th>Class Name</th>
+                <th>Project</th>
+                <th>Previous Result</th>
+                <th>Current Result</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        deltaTests.forEach(test => {
+            const row = document.createElement('tr');
+
+            // Create table cells
+            const testNameCell = document.createElement('td');
+            testNameCell.textContent = test.testName;
+
+            const classNameCell = document.createElement('td');
+            classNameCell.textContent = test.className;
+
+            const projectNameCell = document.createElement('td');
+            projectNameCell.textContent = test.projectName;
+
+            const previousResultCell = document.createElement('td');
+            previousResultCell.textContent = test.previousResult;
+            let statusClassForModalPreviousResult = getStatusClassForModal(test.previousResult);
+            if (statusClassForModalPreviousResult !== '')
+                previousResultCell.classList.add(statusClassForModalPreviousResult);
+
+            const currentResultCell = document.createElement('td');
+            currentResultCell.textContent = test.currentResult;
+            let statusClassForModalCurrentResult = getStatusClassForModal(test.currentResult);
+            if (statusClassForModalCurrentResult !== '')
+                currentResultCell.classList.add(statusClassForModalCurrentResult);
+
+            // Append cells to the row
+            row.appendChild(testNameCell);
+            row.appendChild(classNameCell);
+            row.appendChild(projectNameCell);
+            row.appendChild(previousResultCell);
+            row.appendChild(currentResultCell);
+
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        modalBody.appendChild(table);
+    }
+
+    // Show the modal
+    modal.style.display = 'block';
+
+    // Close the modal when the user clicks the close button
+    closeModal.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Close the modal when the user clicks outside of the modal content
+    window.onclick = (event) => {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+
+// Helper function to map result strings to CSS classes for the modal
+function getStatusClassForModal(result) {
+    switch(result.toLowerCase()) {
+        case 'passed':
+            return 'status-passed';
+        case 'failed':
+            return 'status-failed';
+        case 'error':
+            return 'status-error';
+        case 'skipped':
+            return 'status-skipped';
+        default:
+            return '';
+    }
+}
+
+// Helper function to capitalize the first letter of a string
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
