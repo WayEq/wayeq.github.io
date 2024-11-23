@@ -463,14 +463,21 @@ td a:hover {
 }
 
 /* Delta Span Styles */
+/* Optional: Add padding and adjust display properties for delta spans */
 .delta {
-    cursor: pointer;
+    display: inline-flex; /* Allows better alignment of children elements */
     font-size: 0.5em;
-    display: inline-flex;
-    align-items: center;
-    text-decoration: underline;
+    align-items: center; /* Vertically centers the icon and text within the span */
+    padding: 2px 4px; /* Adds padding around the delta content */
+    border-radius: 4px; /* Rounds the corners for a subtle aesthetic */
+    cursor: pointer; /* Changes the cursor to a pointer on hover, indicating interactivity */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effects */
 }
 
+/* Optional: Add a hover effect for better user interaction */
+.delta:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Light background on hover */
+}
 .delta-up {
     color: var(--success-color);
 }
@@ -483,9 +490,7 @@ td a:hover {
     color: var(--secondary-color);
 }
 
-.delta:hover {
-    color: var(--primary-color);
-}
+
 
 /* Modal Styles */
 .modal {

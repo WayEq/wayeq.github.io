@@ -335,14 +335,7 @@
         "to_execution_time": "2024-11-23 00:52:50",
         "from_filename": "test_results_20241121_220952.json",
         "to_filename": "test_results_20241123_005250.json",
-        "glide_commits": [
-            {
-                "commit": "f9f45f7de64d4721c0076e65aca05319995195fb",
-                "author": "aaron.shoal",
-                "date": "2024-11-22 18:22:06 -0800",
-                "message": "STRY59039465 Fix Blocker Critical Issues Detected By Sonar"
-            }
-        ],
+        "glide_commits": [],
         "glide_test_commits": [
             {
                 "commit": "1ba2f8b6492d2db3c515c72fa5eebdc56af5707b",
