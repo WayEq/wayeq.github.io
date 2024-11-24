@@ -305,6 +305,12 @@ function getDeltaTests(resultType) {
         previousTestMap.set(key, test);
     });
 
+    const currentTestMap = new Map();
+    currentTestResults.forEach(test => {
+        const key = `${test.project_name}|${test.class_name}|${test.test_name}`;
+        currentTestMap.set(key, test);
+    });
+
     currentTestResults.forEach(currentTest => {
         const key = `${currentTest.project_name}|${currentTest.class_name}|${currentTest.test_name}`;
         const previousTest = previousTestMap.get(key);
@@ -330,6 +336,21 @@ function getDeltaTests(resultType) {
                     currentResult: currentTest.result
                 });
             }
+        }
+    });
+
+    previousTestResults.forEach(previousTest => {
+        const key = `${previousTest.project_name}|${previousTest.class_name}|${previousTest.test_name}`;
+        const currentTest = currentTestMap.get(key);
+
+        if (!currentTest && previousTest.result === resultType) {
+            deltaTests.push({
+                testName: previousTest.test_name,
+                className: previousTest.class_name,
+                projectName: previousTest.project_name,
+                previousResult: previousTest.result,
+                currentResult: 'Not Present'
+            });
         }
     });
 

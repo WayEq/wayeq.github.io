@@ -323,14 +323,6 @@
         ]
     },
     {
-        "from_execution_time": "2024-11-22 11:39:24",
-        "to_execution_time": "2024-11-23 00:52:50",
-        "from_filename": "test_results_20241122_113924.json",
-        "to_filename": "test_results_20241123_005250.json",
-        "glide_commits": [],
-        "glide_test_commits": []
-    },
-    {
         "from_execution_time": "2024-11-21 22:09:52",
         "to_execution_time": "2024-11-23 00:52:50",
         "from_filename": "test_results_20241121_220952.json",
