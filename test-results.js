@@ -144,14 +144,15 @@ export function formatCountWithDelta(metricType, spanId, currentCount, previousC
     let deltaClass = '';
 
     if (delta > 0) {
-        deltaSymbol = `<i class="fas fa-arrow-up"></i> ${delta}`;
+        deltaSymbol = `<i class="fas fa-arrow-up"></i> ${delta} 
+    <i class="fas fa-search info-icon"></i>`;
         metricType === 'passedCount' ? deltaClass = 'delta-up' : deltaClass = 'delta-down';
     } else if (delta < 0) {
-        deltaSymbol = `<i class="fas fa-arrow-down"></i> ${Math.abs(delta)}`;
+        deltaSymbol = `<i class="fas fa-arrow-down"></i> ${Math.abs(delta)} 
+    <i class="fas fa-search info-icon"></i>`;
         metricType === 'passedCount' ? deltaClass = 'delta-down' : deltaClass = 'delta-up';
     } else {
-        deltaSymbol = `<i class="fas fa-minus"></i> 0`;
-        deltaClass = 'delta-same';
+        return `${currentCount}`;
     }
 
     return `${currentCount} <span id=${spanId} class="delta ${deltaClass}">${deltaSymbol}</span>`;

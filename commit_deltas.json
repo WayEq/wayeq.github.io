@@ -348,5 +348,26 @@
                 "message": "STRY58370712: created new idr-di-dct-test project for DCT ITs (#82884)"
             }
         ]
+    },
+    {
+        "from_execution_time": "2024-11-23 00:52:50",
+        "to_execution_time": "2024-11-24 11:07:20",
+        "from_filename": "test_results_20241123_005250.json",
+        "to_filename": "test_results_20241124_110720.json",
+        "glide_commits": [],
+        "glide_test_commits": [
+            {
+                "commit": "61117b9b8dd79557f2e9220aab3224c763ecb8ff",
+                "author": "Aaron Shoal",
+                "date": "2024-11-24 05:36:12 -0800",
+                "message": "Merge pull request #83003 from dev/scratch/MAINT-fix-dependency-and-incorrect-assert"
+            },
+            {
+                "commit": "b7fcfc85581b9595a48f14f2f4a2820e926c697d",
+                "author": "aaron.shoal",
+                "date": "2024-11-24 05:26:33 -0800",
+                "message": "MAINT Fix Dependency And Incorrect Assert"
+            }
+        ]
     }
 ]

@@ -465,19 +465,44 @@ td a:hover {
 /* Delta Span Styles */
 /* Optional: Add padding and adjust display properties for delta spans */
 .delta {
-    display: inline-flex; /* Allows better alignment of children elements */
     font-size: 0.5em;
-    align-items: center; /* Vertically centers the icon and text within the span */
-    padding: 2px 4px; /* Adds padding around the delta content */
-    border-radius: 4px; /* Rounds the corners for a subtle aesthetic */
-    cursor: pointer; /* Changes the cursor to a pointer on hover, indicating interactivity */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effects */
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    position: relative; /* For tooltip positioning if needed */
 }
 
-/* Optional: Add a hover effect for better user interaction */
-.delta:hover {
-    background-color: rgba(0, 0, 0, 0.05); /* Light background on hover */
+/* Icon Styling */
+.delta i {
+    font-size: 0.75em; /* Smaller icon size */
+    vertical-align: middle;
+    margin-right: 4px; /* Space between icon and number */
+    transition: transform 0.2s ease;
 }
+
+/* Info Icon Styling */
+.delta .info-icon {
+    font-size: 0.6em; /* Smaller than the main icon */
+    margin-left: 6px; /* Space between delta number and info icon */
+    color: var(--primary-color); /* Use a primary color for visibility */
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.3s ease;
+}
+
+/* Show the info icon on hover */
+.delta:hover .info-icon {
+    opacity: 1;
+}
+
+.delta:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Light gray background on hover */
+    transform: scale(1.05); /* Slightly enlarge the span */
+}
+
+/* Hover Effect for Icons: Subtle Movement */
 .delta-up {
     color: var(--success-color);
 }
@@ -489,7 +514,6 @@ td a:hover {
 .delta-same {
     color: var(--secondary-color);
 }
-
 
 
 /* Modal Styles */

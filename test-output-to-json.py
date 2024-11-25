@@ -205,12 +205,13 @@ def main():
 	# Get the commit hash
     glide_hash = execution_metadata.get('glide_commit', '')
     glide_test_hash = execution_metadata.get('test_commit', '')
+    print(f"execution_metadata: {execution_metadata}")
     # Prepare the final output JSON structure
     output_data = {
         'execution_time': execution_time_str,
         'test_branch': test_branch,
-        "glide_commit_hash": glide_hash,
-        "glide_test_commit_hash": glide_test_hash,
+        'glide_commit_hash': glide_hash,
+        'glide_test_commit_hash': glide_test_hash,
         'test_results': all_test_cases
     }
 
