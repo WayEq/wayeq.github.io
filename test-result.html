@@ -277,7 +277,7 @@
             systemOutDetails.className = 'mb-3';
             systemOutDetails.innerHTML = `
                 <summary><i class="fas fa-info-circle"></i> System Out</summary>
-                <pre>${highlightLines(testCase.system_out, testCase.class_name)}</pre>
+                <pre>${highlightLines(testCase.system_out, testCase.class_name, branch, testCase.package, testCase.project_name)}</pre>
             `;
             testCaseDiv.appendChild(systemOutDetails);
         }
@@ -288,7 +288,7 @@
             systemErrDetails.className = 'mb-3';
             systemErrDetails.innerHTML = `
                 <summary><i class="fas fa-exclamation-circle"></i> System Error</summary>
-                <pre>${highlightLines(testCase.system_err, testCase.class_name)}</pre>
+                <pre>${highlightLines(testCase.system_err, testCase.class_name, branch, testCase.package, testCase.project_name)}</pre>
             `;
             testCaseDiv.appendChild(systemErrDetails);
         }
