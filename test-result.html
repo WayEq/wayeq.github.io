@@ -121,7 +121,7 @@
 		// at com.glide.idr.scheduler.consumer.IDRConsumerJobConcurrencyIT.testSingleTopicDiffJobDiffId(IDRConsumerJobConcurrencyIT.java:254)
 
 		// Regular expression to extract class name, file name, and line number
-		const regex = /at\s+([\w.$]+)\.[\w$<>]+\(.*?([\w.$]+\.java):(\d+)\)/;
+		const regex = /\s*at\s+([\w.$]+)\.[\w$<>]+\(.*?([\w.$]+\.java):(\d+)\)/;
 		const match = line.match(regex);
 
 		if (!match) {
