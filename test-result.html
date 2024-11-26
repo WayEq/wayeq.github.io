@@ -125,7 +125,7 @@
 		const match = line.match(regex);
 
 		if (!match) {
-			throw new Error('Invalid stack trace line format');
+			return "";
 		}
 
 		const fullClassName = match[1]; // e.g., com.glide.idr.scheduler.consumer.IDRConsumerJobConcurrencyIT
@@ -159,7 +159,11 @@
                 return `<span class="severe-line">${line}</span>`;
             } else if (line.includes(testCaseName)) {
 				linkedLine = convertStackTraceLineToUrl(line, branch, packageName, project);
-                return `<span class="testcase-line"><a href=${linkedLine}>${line}</a></span>`;
+				if (linkedLine !== "") {
+					return `<span class="testcase-line"><a href=${linkedLine}>${line}</a></span>`;
+				} else {
+					return `<span class="testcase-line">${line}</span>`;
+                }
             }
             return line;
         }).join('\n');
