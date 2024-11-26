@@ -59,7 +59,7 @@ def calculate_deltas(latest, previous):
         elif delta < 0:
             deltas[category] = f"({delta})"
         else:
-            deltas[category] = "(±0)"
+            deltas[category] = ""
     return deltas
 
 def find_commit_deltas(commit_deltas_data, latest_filename):

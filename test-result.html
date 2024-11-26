@@ -106,30 +106,62 @@
         return params;
     }
 
-    /**
-     * Function to escape HTML characters to prevent XSS attacks.
-     * Converts the input to a string to handle non-string inputs gracefully.
-     */
-    function escapeHtml(unsafe) {
-        return String(unsafe).replace(/&/g, "&amp;")
-                            .replace(/</g, "&lt;")
-                            .replace(/>/g, "&gt;")
-                            .replace(/"/g, "&quot;")
-                            .replace(/'/g, "&#039;");
-    }
+	/**
+	 * Converts a stack trace line to a GitHub-like URL.
+	 *
+	 * @param {string} line - The stack trace line.
+	 * @param {string} branch - The branch name.
+	 * @param {string} packageName - The package name (e.g., com.glide.idr.scheduler.consumer).
+	 * @param {string} project - The project name.
+	 * @param {string} [srcType='test'] - The source type ('test' or 'main').
+	 * @returns {string} - The constructed URL.
+	 */
+	function convertStackTraceLineToUrl(line, branch, packageName, project, srcType = 'test') {
+		// Example line:
+		// at com.glide.idr.scheduler.consumer.IDRConsumerJobConcurrencyIT.testSingleTopicDiffJobDiffId(IDRConsumerJobConcurrencyIT.java:254)
 
-    /**
+		// Regular expression to extract class name, file name, and line number
+		const regex = /at\s+([\w.$]+)\.[\w$<>]+\(.*?([\w.$]+\.java):(\d+)\)/;
+		const match = line.match(regex);
+
+		if (!match) {
+			throw new Error('Invalid stack trace line format');
+		}
+
+		const fullClassName = match[1]; // e.g., com.glide.idr.scheduler.consumer.IDRConsumerJobConcurrencyIT
+		const fileName = match[2];       // e.g., IDRConsumerJobConcurrencyIT.java
+		const lineNumber = match[3];     // e.g., 254
+
+		// Convert package name to path
+		const packagePath = packageName.replace(/\./g, '/'); // e.g., com/glide/idr/scheduler/consumer
+
+		// Determine the source type path (test or main)
+		const srcPath = srcType === 'main' ? 'src/main/java' : 'src/test/java';
+
+		// Construct the full file path
+		const filePath = `${srcPath}/${packagePath}/${fileName}`;
+
+		// Construct the URL
+		const url = `https://code.devsnc.com/dev/glide-test/blob/${branch}/${project}/${filePath}#L${lineNumber}`;
+
+		return url;
+	}
+
+
+
+	/**
      * Function to highlight lines containing "SEVERE".
      * Wraps the line with a <span> that has the 'severe-line' class.
      */
-    function highlightLines(text, testCaseName) {
+    function highlightLines(text, testCaseName, branch, packageName, project) {
         return text.split('\n').map(line => {
             if (line.includes('SEVERE')) {
-                return `<span class="severe-line">${escapeHtml(line)}</span>`;
+                return `<span class="severe-line">${line}</span>`;
             } else if (line.includes(testCaseName)) {
-                return `<span class="testcase-line">${escapeHtml(line)}</span>`;
+				linkedLine = convertStackTraceLineToUrl(line, branch, packageName, project);
+                return `<span class="testcase-line"><a href=${linkedLine}>${line}</a></span>`;
             }
-            return escapeHtml(line);
+            return line;
         }).join('\n');
     }
 
@@ -140,7 +172,7 @@
         const container = document.getElementById('test-case-container');
         container.innerHTML = `
             <div class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-triangle"></i> ${escapeHtml(message)}
+                <i class="fas fa-exclamation-triangle"></i> ${message}
             </div>
         `;
     }
@@ -166,7 +198,7 @@
     /**
      * Function to display a test case
      */
-    function displayTestCase(testCase, execution) {
+    function displayTestCase(testCase, execution, branch) {
         const container = document.getElementById('test-case-container');
         container.innerHTML = ''; // Clear previous content
 
@@ -174,7 +206,7 @@
         testCaseDiv.className = 'test-case';
 
         const title = document.createElement('h2');
-        title.innerHTML = `<i class="fas fa-vial"></i> ${escapeHtml(testCase.class_name)}${testCase.test_name ? '.' + escapeHtml(testCase.test_name) : ''}`;
+        title.innerHTML = `<i class="fas fa-vial"></i> ${testCase.class_name}${testCase.test_name ? '.' + testCase.test_name : ''}`;
         testCaseDiv.appendChild(title);
         document.title = `TestPulse - ${testCase.class_name}${testCase.test_name ? '.' + testCase.test_name : ''}`;
 
@@ -186,7 +218,7 @@
         ];
 
         if (testCase.test_name) {
-            infoSections.push({ label: 'Test Name', value: `<span class="test-name">${escapeHtml(testCase.test_name)}</span>` });
+            infoSections.push({ label: 'Test Name', value: `<span class="test-name">${testCase.test_name}</span>` });
         }
 
 		if (execution) {
@@ -214,8 +246,8 @@
 			}
 		}
 
-        infoSections.push({ label: 'Result', value: `<span class="${getResultClass(testCase.result)}">${escapeHtml(testCase.result)}</span>` });
-        infoSections.push({ label: 'Time', value: `${escapeHtml(testCase.time)} seconds` });
+        infoSections.push({ label: 'Result', value: `<span class="${getResultClass(testCase.result)}">${testCase.result}</span>` });
+        infoSections.push({ label: 'Time', value: `${testCase.time} seconds` });
 
         infoSections.forEach(section => {
             const p = document.createElement('p');
@@ -230,7 +262,7 @@
             stackTraceDiv.className = 'mb-3';
             stackTraceDiv.innerHTML = `
                 <span class="label">Stack Trace:</span>
-                <pre>${highlightLines(testCase.stack_trace, testCase.class_name)}</pre>
+                <pre>${highlightLines(testCase.stack_trace, testCase.class_name, branch, testCase.package, testCase.project_name)}</pre>
             `;
             testCaseDiv.appendChild(stackTraceDiv);
         }
@@ -312,7 +344,7 @@
 
             const testCase = findTestCase(testResultsData, params);
             if (testCase) {
-                displayTestCase(testCase, params.execution);
+                displayTestCase(testCase, params.execution, params.branch);
             }
         } catch (error) {
             console.error('Initialization error:', error);
