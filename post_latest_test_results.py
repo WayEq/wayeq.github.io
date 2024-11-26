@@ -209,7 +209,6 @@ def main():
     # Get the latest test result
     latest_result = sorted_results[-1]
 
-    print(latest_result)
     # Initialize deltas and commit_deltas_entry
     deltas = None
     commit_deltas_entry = None
@@ -217,7 +216,6 @@ def main():
     # Check if there is a previous test result to compare with
     if len(sorted_results) >= 2:
         previous_result = sorted_results[-2]
-        print(previous_result)
         deltas = calculate_deltas(latest_result, previous_result)
 
         # Find the commit deltas entry corresponding to the latest test result

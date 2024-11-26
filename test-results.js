@@ -395,7 +395,9 @@ function displayDeltaModal(resultType, deltaTests) {
 
             // Create table cells
             const testNameCell = document.createElement('td');
+            testNameCell.classList.add('test-name');
             testNameCell.textContent = test.testName;
+            testNameCell.title = test.testName;
 
             const classNameCell = document.createElement('td');
             classNameCell.textContent = test.className;
@@ -425,7 +427,10 @@ function displayDeltaModal(resultType, deltaTests) {
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
-        modalBody.appendChild(table);
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('table-container');
+        tableContainer.appendChild(table);
+        modalBody.appendChild(tableContainer);
     }
 
     // Show the modal
