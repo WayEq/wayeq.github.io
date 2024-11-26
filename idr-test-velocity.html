@@ -123,16 +123,16 @@
             </div>
 
             <!-- Toggle Buttons -->
-            <button id="toggleDetailsButton" class="collapsible toggle-button">
-                <i class="fas fa-chevron-down"></i> Show Details
+            <button id="toggleDetailsButton" class="collapsible toggle-button expanded">
+                <i class="fas fa-chevron-down"></i> Hide Test Results
             </button>
             <button id="toggleCommitsButton" class="collapsible toggle-button">
                 <i class="fas fa-code-branch"></i> Show Commit Details
             </button>
 
             <!-- Collapsible Content -->
-            <div id="collapsibleContent" class="collapsible-content">
-                <h2>Test Execution Details</h2>
+            <div id="collapsibleContent" class="collapsible-content expanded">
+                <h2>Test Results</h2>
                 <!-- Filters for Test Results -->
                 <div class="filter-container">
                     <div>
@@ -151,8 +151,8 @@
                     </div>
                 </div>
                 <!-- Test Results Table -->
-                <div class="table-responsive">
-                    <table class="test-results-table" id="testResultsTable">
+                <div class="table-container">
+                    <table class="delta-table" id="testResultsTable">
                         <thead>
                         <tr>
                             <th>Project Name</th>

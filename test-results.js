@@ -35,7 +35,7 @@ export async function displayTestResultsForExecution(executionFileName, compared
         const defaultFilteredData = executionResults.filter(test => test.result === 'failed' || test.result === 'error');
 
         // Populate the test results table with filtered data
-        populateTestResultsTable(defaultFilteredData, executionFileName);
+        populateTestResultsTable(defaultFilteredData, executionFileName, testBranch);
 
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
@@ -158,7 +158,7 @@ export function formatCountWithDelta(metricType, spanId, currentCount, previousC
     return `${currentCount} <span id=${spanId} class="delta ${deltaClass}">${deltaSymbol}</span>`;
 }
 
-export function populateTestResultsTable(testExecutionResultsData, executionFileName) {
+export function populateTestResultsTable(testExecutionResultsData, executionFileName, testBranch) {
     const tableBody = document.querySelector('#testResultsTable tbody');
     tableBody.innerHTML = ''; // Clear existing rows
 
@@ -206,12 +206,14 @@ export function populateTestResultsTable(testExecutionResultsData, executionFile
                 // Test Name
                 const testNameCell = document.createElement('td');
                 testNameCell.textContent = test.test_name || '';
+                testNameCell.title = test.test_name;
+                testNameCell.classList.add('test-name');
                 row.appendChild(testNameCell);
 
                 // Result
                 const resultCell = document.createElement('td');
                 resultCell.textContent = test.result || '';
-                resultCell.classList.add(test.result); // Add class for styling
+                resultCell.classList.add(getStatusClassForModal(test.result)); // Add class for styling
                 row.appendChild(resultCell);
 
                 // Error Details
@@ -223,6 +225,7 @@ export function populateTestResultsTable(testExecutionResultsData, executionFile
                         window.open(
                             'test-result.html?project=' + encodeURIComponent(test.project_name) +
                             '&class=' + encodeURIComponent(test.class_name) +
+                            '&branch=' + encodeURIComponent(testBranch) +
                             '&test=' + encodeURIComponent(test.test_name) +
                             '&execution=' + encodeURIComponent(executionFileName),
                             '_blank'
@@ -270,7 +273,7 @@ export function applyTestResultsFilters(executionResults, executionFileName) {
     }
 
     // Update the summary and table with the filtered data
-    populateTestResultsTable(filteredData, executionFileName);
+    populateTestResultsTable(filteredData, executionFileName, executionResults.test_branch);
 }
 
 function displayTestMetadata(executionTime, testBranch, glideCommit) {

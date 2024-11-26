@@ -62,10 +62,10 @@ export function addTestExecutionResultEventListeners(executionIndexData, commitD
             collapsibleContent.offsetHeight; // Trigger reflow
             collapsibleContent.style.height = '0';
             collapsibleContent.classList.remove('expanded');
-            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-down"></i> Show Details';
+            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-down"></i> Test Results';
         } else {
             collapsibleContent.classList.add('expanded');
-            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Details';
+            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Test Results';
             expandCollapsibleContent(collapsibleContent);
         }
     });
