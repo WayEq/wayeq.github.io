@@ -42,6 +42,7 @@ def get_commit_info(repo_path, old_hash, new_hash):
         'git', '-C', repo_path, 'log',
         '--pretty=format:%H|%an|%ad|%s',
         '--date=iso',
+        '--no-merges',
         f'{old_hash}..{new_hash}'
     ]
     result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

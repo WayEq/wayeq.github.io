@@ -161,6 +161,76 @@
 	}
 
 
+	/**
+	/**
+	 * Colorizes the initial timestamp (including milliseconds) in a log line if present.
+	 *
+	 * @param {string} line - The log line to process.
+	 * @param {string} color - (Optional) The color to apply to the timestamp. Default is 'gray'.
+	 * @returns {string} - The processed line with the timestamp colorized, or the original line if no timestamp is found.
+	 */
+	function colorize(line, color = 'blue') { // Default to a subtle gray
+		// Updated regular expression to match timestamp with milliseconds
+		const timestampRegex = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \(\d{3}\))/;
+
+		// Test if the line starts with the timestamp
+		const match = line.match(timestampRegex);
+
+		if (match) {
+			const timestamp = match[1];
+			// Replace the timestamp with a span that applies the subtle color
+			const coloredTimestamp = `<span style="color: ${color}; font-weight: bold;">${timestamp}</span>`;
+			// Replace only the first occurrence
+			return line.replace(timestampRegex, coloredTimestamp);
+		}
+
+		// If no timestamp is found, return the original line
+		return line;
+	}
+
+	function trimStackTrace(stackTrace, options) {
+
+		const lines = stackTrace.split('\n');
+		const trimmedLines = [];
+		let frameCount = 0;
+
+		const frameRegex = /^\s*at\s+([^\s]+)\(([^)]+)\)$/;
+		const causedByRegex = /^\s*Caused by:/;
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+
+			if (i === 0 || causedByRegex.test(line)) {
+				// Retain exception messages and caused by messages
+				trimmedLines.push(line);
+				continue;
+			}
+
+			const match = line.match(frameRegex);
+
+			if (match) {
+				const fullMethod = match[1];
+				const isExcluded = options.excludePackages.some(pkg => fullMethod.startsWith(pkg));
+				if (isExcluded) {
+					continue;
+				}
+
+                trimmedLines.push(line);
+                frameCount++;
+                if (frameCount >= options.maxFrames) {
+                    trimmedLines.push('\t...'); // Indicate omitted frames
+                    break;
+                }
+
+			} else {
+				// Retain non-frame lines
+				trimmedLines.push(line);
+			}
+		}
+
+		return trimmedLines.join('\n');
+	}
+
 
 	/**
      * Function to highlight lines containing "SEVERE".
@@ -168,6 +238,7 @@
      */
     function highlightLines(text, testCaseName, branch, packageName, project) {
         return text.split('\n').map(line => {
+			line = colorize(line);
             if (line.includes('SEVERE')) {
                 return `<span class="severe-line">${line}</span>`;
             } else if (line.includes(testCaseName)) {
@@ -276,10 +347,11 @@
         // Stack Trace
         if (testCase.stack_trace) {
             const stackTraceDiv = document.createElement('div');
+			stackTrace = trimStackTrace(testCase.stack_trace, { includePackages: [], excludePackages: ['org.junit', 'org.testng', 'java.base', 'org.apache'],  maxFrames: 10 });
             stackTraceDiv.className = 'mb-3';
             stackTraceDiv.innerHTML = `
                 <span class="label">Stack Trace:</span>
-                <pre>${highlightLines(testCase.stack_trace, testCase.class_name, branch, testCase.package, testCase.project_name)}</pre>
+                <pre>${highlightLines(stackTrace, testCase.class_name, branch, testCase.package, testCase.project_name)}</pre>
             `;
             testCaseDiv.appendChild(stackTraceDiv);
         }
