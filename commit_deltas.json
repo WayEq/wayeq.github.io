@@ -420,5 +420,26 @@
                 "message": "STRY58689619 : sonar report for IT (#82952)"
             }
         ]
+    },
+    {
+        "from_execution_time": "2024-11-28 05:30:43",
+        "to_execution_time": "2024-12-03 01:55:43",
+        "from_filename": "test_results_20241128_053043.json",
+        "to_filename": "test_results_20241203_015543.json",
+        "glide_commits": [],
+        "glide_test_commits": [
+            {
+                "commit": "b6c2c626e8c38d24bc27ba14c71b54d05932bd67",
+                "author": "aaron.shoal",
+                "date": "2024-12-02 05:03:35 -0800",
+                "message": "MAINT - Update the logic of when to enable vs disable tests."
+            },
+            {
+                "commit": "f6efc36ea6bec97d52270c527a94a9fab3512ec5",
+                "author": "Pooja Bommidi",
+                "date": "2024-11-29 15:05:35 +0530",
+                "message": "STRY58689619 : fixing dependency errors for sonar report for IT (#83209)"
+            }
+        ]
     }
 ]
