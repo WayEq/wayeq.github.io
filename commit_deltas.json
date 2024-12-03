@@ -101,7 +101,7 @@
             },
             {
                 "commit": "e473a3eaa3db09d0caa010cf03cb3c780d2e622e",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-17 06:49:22 -0800",
                 "message": "More updates to support Hermes ITs and improve framework"
             }
@@ -161,7 +161,7 @@
             },
             {
                 "commit": "e473a3eaa3db09d0caa010cf03cb3c780d2e622e",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-17 06:49:22 -0800",
                 "message": "More updates to support Hermes ITs and improve framework"
             }
@@ -175,7 +175,7 @@
         "glide_commits": [
             {
                 "commit": "f12dd0613b5c50cc5e3d551f17fefe6a3290556a",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-19 15:24:51 -0800",
                 "message": "Test hermes partition number fix"
             }
@@ -190,7 +190,7 @@
         "glide_commits": [
             {
                 "commit": "f12dd0613b5c50cc5e3d551f17fefe6a3290556a",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-19 15:24:51 -0800",
                 "message": "Test hermes partition number fix"
             }
@@ -204,7 +204,7 @@
             },
             {
                 "commit": "1d9ef44046e551373e8d8b78014cba92c1538fbb",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-20 08:59:15 -0800",
                 "message": "More update"
             }
@@ -232,7 +232,7 @@
             },
             {
                 "commit": "64f5b5ddf2b8e72aba1167d3098ddc03275d9d58",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-21 15:17:40 -0800",
                 "message": "MAINT Move Dependant Classes"
             },
@@ -244,7 +244,7 @@
             },
             {
                 "commit": "2dd8b9ac65551de2dcdf84fe73976d45fd065617",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-21 13:17:03 -0800",
                 "message": "MAINT Add Logging Test Watchers"
             },
@@ -256,7 +256,7 @@
             },
             {
                 "commit": "d00f9da507b4db8faf9834617573ea6d7099df93",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-21 09:27:22 -0800",
                 "message": "MAINT - Update the logic of when to enable vs disable tests."
             },
@@ -283,7 +283,7 @@
             },
             {
                 "commit": "abb70bf04086278efbe1e4d8dcb3836a3b0be4dd",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-22 10:36:16 -0800",
                 "message": "Add missing dependancy to pom.xml"
             },
@@ -310,7 +310,7 @@
             },
             {
                 "commit": "abb70bf04086278efbe1e4d8dcb3836a3b0be4dd",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-22 10:36:16 -0800",
                 "message": "Add missing dependancy to pom.xml"
             },
@@ -337,7 +337,7 @@
             },
             {
                 "commit": "abb70bf04086278efbe1e4d8dcb3836a3b0be4dd",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-22 10:36:16 -0800",
                 "message": "Add missing dependancy to pom.xml"
             },
@@ -364,7 +364,7 @@
             },
             {
                 "commit": "bc414f0d8c51ab07c793505c36aae8fa613b29f4",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-25 09:09:34 -0800",
                 "message": "MAINT Fix IDRConsumerJobIT"
             },
@@ -376,7 +376,7 @@
             },
             {
                 "commit": "b7fcfc85581b9595a48f14f2f4a2820e926c697d",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-24 05:26:33 -0800",
                 "message": "MAINT Fix Dependency And Incorrect Assert"
             }
@@ -391,25 +391,25 @@
         "glide_test_commits": [
             {
                 "commit": "bcb6e51b352fbbf4bd2d502c5a15130af5ad134c",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-27 19:19:56 -0800",
                 "message": "MAINT Better Support Transitive Deps"
             },
             {
                 "commit": "76725762ab5e0547d161ce38dac08abdcef76b78",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-27 06:34:21 -0800",
                 "message": "MAINT Logging Improvements"
             },
             {
                 "commit": "5c3ecbd3ccb664e04b60351e1aa58c831394c77b",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-27 05:07:12 -0800",
                 "message": "MAINT Fix Legacy Jenkins Runs"
             },
             {
                 "commit": "33649badcec869bf50f6f4ea08ef6be661696c70",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-11-27 05:07:12 -0800",
                 "message": "MAINT Fix Legacy Jenkins Runs"
             },
@@ -430,7 +430,7 @@
         "glide_test_commits": [
             {
                 "commit": "b6c2c626e8c38d24bc27ba14c71b54d05932bd67",
-                "author": "aaron.shoal",
+                "author": "Aaron Shoal",
                 "date": "2024-12-02 05:03:35 -0800",
                 "message": "MAINT - Update the logic of when to enable vs disable tests."
             },

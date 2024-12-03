@@ -3,6 +3,7 @@
 import os
 import json
 import subprocess
+import re
 from datetime import datetime
 
 # Paths to your repositories
@@ -56,9 +57,11 @@ def get_commit_info(repo_path, old_hash, new_hash):
             parts = line.split('|', 3)
             if len(parts) == 4:
                 commit_hash, author, date, message = parts
+                standardized_author = re.sub(r'(\w+)\.(\w+)', lambda m: f"{m.group(1).capitalize()} {m.group(2).capitalize()}", author)
+
                 commits.append({
                     'commit': commit_hash,
-                    'author': author,
+                    'author': standardized_author,
                     'date': date,
                     'message': message
                 })
@@ -105,7 +108,6 @@ def main():
 
         key = (previous_entry['execution_time'], current_entry['execution_time'])
         if key in existing_deltas:
-            print(f"Delta already exists for {key}. Skipping.")
             continue
 
         print(f"Processing {previous_entry['execution_time']} to {current_entry['execution_time']}")
