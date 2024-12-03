@@ -1,8 +1,9 @@
 // test-results.js
 
-import { createTestResultsPieChart, renderTestExecutionResultTrendChart } from './chart-handling.js';
-import { getOrdinalSuffix, groupBy } from './utils.js';
-import { loadExecutionData } from './data-fetching.js'; // Import loadExecutionData to fetch previous execution data
+import {createTestResultsPieChart, renderTestExecutionResultTrendChart} from './chart-handling.js';
+import {getOrdinalSuffix, groupBy} from './utils.js';
+import {loadExecutionData} from './data-fetching.js';
+import {generateCommitUrl} from "./commit-deltas.js"; // Import loadExecutionData to fetch previous execution data
 
 // Global variables to store current and previous test results
 let currentTestResults = [];
@@ -208,6 +209,12 @@ export function populateTestResultsTable(testExecutionResultsData, executionFile
                 testNameCell.textContent = test.test_name || '';
                 testNameCell.title = test.test_name;
                 testNameCell.classList.add('test-name');
+                testNameCell.addEventListener('click', () => {
+                    displayTestExecutionHistoryModal(test.project_name, test.class_name, test.test_name).then(r => {});
+                });
+
+                testNameCell.style.cursor = 'pointer';
+                testNameCell.style.textDecoration = 'underline';
                 row.appendChild(testNameCell);
 
                 // Result
@@ -402,6 +409,14 @@ function displayDeltaModal(resultType, deltaTests) {
             testNameCell.textContent = test.testName;
             testNameCell.title = test.testName;
 
+            // Add event listener to the test name cell
+            testNameCell.addEventListener('click', () => {
+                displayTestExecutionHistoryModal(test.projectName, test.className, test.testName).then(r => {});
+            });
+
+            testNameCell.style.cursor = 'pointer';
+            testNameCell.style.textDecoration = 'underline';
+
             const classNameCell = document.createElement('td');
             classNameCell.textContent = test.className;
 
@@ -472,3 +487,236 @@ function getStatusClassForModal(result) {
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+async function fetchTestExecutionHistory(projectName, className, testName) {
+    try {
+        // Fetch the execution index
+        const indexResponse = await fetch('test_results/test_results_index.json');
+        if (!indexResponse.ok) {
+            throw new Error(`Failed to fetch execution index: ${indexResponse.status}`);
+        }
+        const indexData = await indexResponse.json();
+
+        // Fetch the commits data
+        const commitsResponse = await fetch('commit_deltas.json');
+        if (!commitsResponse.ok) {
+            throw new Error(`Failed to fetch commits data: ${commitsResponse.status}`);
+        }
+        const commitsData = await commitsResponse.json();
+
+        // Limit the number of executions to fetch (e.g., last 10)
+        const executionsToFetch = indexData.reverse().slice(0, 10);
+
+        const executionHistory = [];
+
+        // Iterate over executions and build execution history
+        for (let i = 0; i < executionsToFetch.length; i++) {
+            const execution = executionsToFetch[i];
+            const executionFilename = execution.filename;
+            const executionTime = execution.execution_time;
+            const testBranch = execution.test_branch;
+
+            // Fetch the execution results file
+            const executionResponse = await fetch(`test_results/${executionFilename}`);
+            if (!executionResponse.ok) {
+                console.warn(`Failed to fetch execution file: ${executionFilename}`);
+                continue;
+            }
+            const executionData = await executionResponse.json();
+            const testResults = executionData.test_results;
+
+            // Find the test result for the specified test
+            const testResult = testResults.find(test =>
+                test.project_name === projectName &&
+                test.class_name === className &&
+                test.test_name === testName
+            );
+
+            if (testResult) {
+                // Initialize deltaCommits
+                let glideCommits = [];
+                let glideTestCommits = [];
+
+                // Get delta commits from the commits data
+                if (i < executionsToFetch.length - 1) {
+                    // There is a previous execution to compare with
+                    const nextExecution = executionsToFetch[i + 1];
+                    const fromExecutionTime = nextExecution.execution_time;
+                    const toExecutionTime = executionTime;
+
+                    // Find the corresponding entry in commits data
+                    const commitsEntry = commitsData.find(commitEntry =>
+                        commitEntry.from_execution_time === fromExecutionTime &&
+                        commitEntry.to_execution_time === toExecutionTime
+                    );
+
+                    if (commitsEntry) {
+                        // Combine glide_commits and glide_test_commits
+                        glideCommits = commitsEntry.glide_commits
+                        glideTestCommits = commitsEntry.glide_test_commits;
+                    }
+                }
+
+                executionHistory.push({
+                    executionTime: executionTime,
+                    result: testResult.result,
+                    glideCommits: glideCommits,
+                    glideTestCommits: glideTestCommits,
+                    testBranch: testBranch
+                });
+            }
+        }
+
+        // Sort execution history by execution time descending
+        executionHistory.sort((a, b) => new Date(b.executionTime) - new Date(a.executionTime));
+
+        return executionHistory;
+    } catch (error) {
+        console.error('Error fetching test execution history:', error);
+        return [];
+    }
+}
+
+async function displayTestExecutionHistoryModal(projectName, className, testName) {
+    const modal = document.getElementById('executionHistoryModal');
+    const modalTitle = document.getElementById('executionHistoryModalTitle');
+    const modalBody = document.getElementById('executionHistoryModalBody');
+    const closeModal = document.getElementById('closeExecutionHistoryModal');
+
+    // Set the title
+    modalTitle.innerText = `Execution History for ${testName}`;
+
+    // Clear previous content
+    modalBody.innerHTML = '';
+
+    // Fetch execution history data
+    const executionHistory = await fetchTestExecutionHistory(projectName, className, testName);
+
+    if (!executionHistory || executionHistory.length === 0) {
+        modalBody.innerHTML = '<p>No execution history available for this test.</p>';
+    } else {
+        // Create a table to display the execution history
+        const table = document.createElement('table');
+        table.classList.add('delta-table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Execution Time</th>
+                <th>Result</th>
+                <th>Delta Commits</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        // Iterate over the execution history
+        executionHistory.forEach(execution => {
+            const row = document.createElement('tr');
+
+            // Execution Time
+            const timeCell = document.createElement('td');
+            timeCell.textContent = execution.executionTime;
+            row.appendChild(timeCell);
+
+            // Result
+            const resultCell = document.createElement('td');
+            resultCell.textContent = execution.result;
+            resultCell.classList.add(getStatusClassForModal(execution.result));
+            row.appendChild(resultCell);
+
+            // Delta Commits
+            const commitsCell = document.createElement('td');
+            commitsCell.classList.add('commits-cell');
+
+            const commitsContainer = document.createElement('div');
+            commitsContainer.classList.add('commits-container');
+
+            // Create commits sections
+            const glideCommitsSection = createCommitsSection('Glide Commits', execution.glideCommits, 'glide');
+            const glideTestCommitsSection = createCommitsSection('Glide Test Commits', execution.glideTestCommits, 'glide-test');
+
+            if (glideCommitsSection) {
+                commitsContainer.appendChild(glideCommitsSection);
+            }
+
+            if (glideTestCommitsSection) {
+                commitsContainer.appendChild(glideTestCommitsSection);
+            }
+
+            if (!glideCommitsSection && !glideTestCommitsSection) {
+                commitsContainer.textContent = 'No new commits';
+                commitsContainer.classList.add('no-commits');
+            }
+
+            commitsCell.appendChild(commitsContainer);
+            row.appendChild(commitsCell);
+
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+
+        // Wrap the table in a scrollable container
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('table-container');
+        tableContainer.appendChild(table);
+
+        modalBody.appendChild(tableContainer);
+    }
+
+    // Show the modal
+    modal.style.display = 'block';
+
+    // Close the modal when the user clicks the close button
+    closeModal.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Close the modal when the user clicks outside of the modal content
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    /**
+     * Helper function to create a commits section.
+     * @param {string} titleText - The title of the section.
+     * @param {Array} commitsArray - Array of commits.
+     * @param {string} repoName - Repository name ('glide' or 'glide-test').
+     * @returns {HTMLElement|null} - The commits section element or null if no commits.
+     */
+    function createCommitsSection(titleText, commitsArray, repoName) {
+        if (!commitsArray || commitsArray.length === 0) {
+            return null;
+        }
+
+        const section = document.createElement('div');
+        section.classList.add('commits-section');
+
+        const title = document.createElement('h5');
+        title.textContent = titleText;
+        section.appendChild(title);
+
+        const commitList = document.createElement('ul');
+        commitsArray.forEach(commit => {
+            const commitItem = document.createElement('li');
+
+            const commitLink = document.createElement('a');
+            commitLink.href = generateCommitUrl(repoName, commit.commit);
+            commitLink.textContent = `${commit.author} - ${commit.message}`;
+            commitLink.target = '_blank';
+            commitLink.rel = 'noopener noreferrer';
+
+            commitItem.appendChild(commitLink);
+            commitList.appendChild(commitItem);
+        });
+        section.appendChild(commitList);
+
+        return section;
+    }
+}
+
+
+

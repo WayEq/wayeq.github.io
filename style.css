@@ -564,30 +564,30 @@ td a:hover {
 }
 
 /* Delta Details Table */
-.delta-table {
+.pulse-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.delta-table th, .delta-table td {
+.pulse-table th, .pulse-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
 
 /* Fixed Table Header */
-.delta-table thead th {
+.pulse-table thead th {
     position: sticky;
     top: 0;
     background-color: var(--primary-color);
     z-index: 1; /* Ensure header stays above data rows */
 }
 
-.delta-table tr:nth-child(even) {
+.pulse-table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.delta-table tr:hover {
+.pulse-table tr:hover {
     background-color: #e6f7ff;
 }
 
@@ -612,7 +612,7 @@ td a:hover {
     font-weight: bold;
 }
 
-.delta-table button {
+.pulse-table button {
     padding: 5px 10px;
     font-size: 0.9em;
     cursor: pointer;
@@ -625,4 +625,115 @@ td a:hover {
 .table-container {
     max-height: 60vh; /* Adjust as needed */
     overflow-y: auto;
+}
+
+
+/* Commits Cell Styling */
+.commits-cell {
+    max-width: 350px;
+    vertical-align: top;
+}
+
+/* Commits Container */
+.commits-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Commits Section */
+.commits-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+/* Commits Section Title */
+.commits-section h5 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: var(--dark-color);
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 5px;
+}
+
+/* Commit List */
+.commits-section ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+/* Commit Item */
+.commits-section ul li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+/* Commit Link */
+.commits-section ul li a {
+    color: var(--primary-color);
+    text-decoration: none;
+    word-break: break-word; /* Handle long commit messages */
+}
+
+/* Commit Link Hover */
+.commits-section ul li a:hover {
+    text-decoration: underline;
+}
+
+/* No Commits Text */
+.no-commits {
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Adjust Table Cell Vertical Alignment */
+.delta-table td {
+    vertical-align: top;
+}
+
+/* Optional: Add Icons to Commit Sections */
+.commits-section h5::before {
+    content: '\f0c1'; /* Font Awesome link icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+/* Adjust Modal Content Overflow */
+.modal-content {
+    overflow: visible;
+}
+
+/* Table Styles */
+.delta-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.delta-table th,
+.delta-table td {
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    text-align: left;
+}
+
+.delta-table th {
+    background-color: var(--primary-color);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.delta-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.delta-table tbody tr:hover {
+    background-color: #e6f7ff;
 }
