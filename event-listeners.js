@@ -1,11 +1,20 @@
 // event-listeners.js
 
-import { applyTestResultsFilters, displayTestResultsForExecution } from './test-results.js';
+import {applyTestResultsFilters, displayTestResultsForExecution, populateSlowestTestsTable} from './test-results.js';
 import { expandCollapsibleContent } from './utils.js';
 import { populateCommitDeltasTable } from './commit-deltas.js';
 import { renderTestVelocityAndAuthorshipSection, resetAuthorshipDetailsTable } from "./test-authorship.js";
 import { loadExecutionData } from "./data-fetching.js";
 import { showDeltaDetails } from './test-results.js'; // Import the showDeltaDetails function
+
+
+export function addSlowestTestsEventListeners(currentTestExecutionResultsData) {
+    // Event listener for the number of tests filter
+    document.getElementById('slowestTestsCount').addEventListener('change', () => {
+        // Call the function to repopulate the table when the filter changes
+        populateSlowestTestsTable(currentTestExecutionResultsData);
+    });
+}
 
 export function addTestExecutionResultEventListeners(executionIndexData, commitDeltaData) {
     const testRunSelect = document.getElementById('testRunSelect');
@@ -52,43 +61,9 @@ export function addTestExecutionResultEventListeners(executionIndexData, commitD
     });
 
     // Toggle buttons
-    const toggleDetailsButton = document.getElementById('toggleDetailsButton');
-    const collapsibleContent = document.getElementById('collapsibleContent');
-
-    toggleDetailsButton.addEventListener('click', () => {
-        if (collapsibleContent.classList.contains('expanded')) {
-            // Collapse the content
-            collapsibleContent.style.height = collapsibleContent.scrollHeight + 'px';
-            collapsibleContent.offsetHeight; // Trigger reflow
-            collapsibleContent.style.height = '0';
-            collapsibleContent.classList.remove('expanded');
-            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-down"></i> Test Results';
-        } else {
-            collapsibleContent.classList.add('expanded');
-            toggleDetailsButton.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Test Results';
-            expandCollapsibleContent(collapsibleContent);
-        }
-    });
-
-    // Add event listeners for the commit deltas toggle button
-    const toggleCommitsButton = document.getElementById('toggleCommitsButton');
-    const commitsCollapsibleContent = document.getElementById('commitsCollapsibleContent');
-
-    toggleCommitsButton.addEventListener('click', () => {
-        if (commitsCollapsibleContent.classList.contains('expanded')) {
-            // Collapse the content
-            commitsCollapsibleContent.style.height = commitsCollapsibleContent.scrollHeight + 'px';
-            commitsCollapsibleContent.offsetHeight; // Trigger reflow
-            commitsCollapsibleContent.style.height = '0';
-            commitsCollapsibleContent.classList.remove('expanded');
-            toggleCommitsButton.innerHTML = '<i class="fas fa-code-branch"></i> Show Commit Details';
-        } else {
-            // Expand the content
-            commitsCollapsibleContent.classList.add('expanded');
-            toggleCommitsButton.innerHTML = '<i class="fas fa-code-branch"></i> Hide Commit Details';
-            expandCollapsibleContent(commitsCollapsibleContent);
-        }
-    });
+    setupToggleButton('toggleDetailsButton', 'collapsibleContent', 'Show Test Results', 'Hide Test Results', 'fas fa-chevron-down');
+    setupToggleButton('toggleCommitsButton', 'commitsCollapsibleContent', 'Show Commit Details', 'Hide Commit Details', 'fas fa-code-branch');
+    setupToggleButton('toggleSlowestTestsButton', 'slowestTestsCollapsibleContent', 'Show Slowest Tests', 'Hide Slowest Tests', 'fas fa-hourglass-half');
 }
 
 // New function to add event listeners to delta counts
@@ -150,5 +125,29 @@ export function addTestVelocityAndAuthorshipEventListeners(commitDeltaData, test
             let selectedTimeWindow = e.target.value;
             renderTestVelocityAndAuthorshipSection(testAuthorshipData, authorFilter.value, projectFilter.value, selectedTimeWindow).then(() => { });
         });
+    });
+}
+
+// Function to initialize toggle buttons
+function setupToggleButton(buttonId, contentId, showText, hideText, iconClass) {
+    const button = document.getElementById(buttonId);
+    const content = document.getElementById(contentId);
+
+    // Initial button text based on content visibility
+    if (content.classList.contains('expanded')) {
+        button.innerHTML = `<i class="${iconClass}"></i> ${hideText}`;
+    } else {
+        button.innerHTML = `<i class="${iconClass}"></i> ${showText}`;
+    }
+
+    button.addEventListener('click', function() {
+        content.classList.toggle('expanded');
+
+        // Update the button text and icon
+        if (content.classList.contains('expanded')) {
+            button.innerHTML = `<i class="${iconClass}"></i> ${hideText}`;
+        } else {
+            button.innerHTML = `<i class="${iconClass}"></i> ${showText}`;
+        }
     });
 }

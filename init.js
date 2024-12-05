@@ -2,10 +2,14 @@
 
 import {getUrlParameters} from './utils.js';
 import {loadCommitDeltas, loadExecutionData, loadExecutionIndex, loadTestAuthorship} from './data-fetching.js';
-import {addTestExecutionResultEventListeners, addTestVelocityAndAuthorshipEventListeners} from './event-listeners.js';
+import {
+    addTestExecutionResultEventListeners,
+    addTestVelocityAndAuthorshipEventListeners
+} from './event-listeners.js';
 import {displayTestResultsForExecution, populateTestExecutionDropdown} from './test-results.js';
 import {populateCommitDeltasTable} from "./commit-deltas.js";
 import {renderTestVelocityAndAuthorshipSection} from "./test-authorship.js";
+import {populateProjectMetrics} from "./test-project-metadata.js";
 
 
 export async function init() {
@@ -35,8 +39,10 @@ export async function init() {
 
         await renderTestVelocityAndAuthorshipSection(testAuthorshipData, 'all', 'all', 'all');
         addTestVelocityAndAuthorshipEventListeners(commitDeltaData, testAuthorshipData);
+        await populateProjectMetrics();
     } catch (error) {
         console.error('Initialization error:', error);
     }
+
 }
 init().then(() => {});

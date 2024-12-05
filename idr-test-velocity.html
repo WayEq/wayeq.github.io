@@ -129,6 +129,9 @@
             <button id="toggleCommitsButton" class="collapsible toggle-button">
                 <i class="fas fa-code-branch"></i> Show Commit Details
             </button>
+            <button id="toggleSlowestTestsButton" class="collapsible toggle-button">
+                <i class="fas fa-hourglass-half"></i> Show Slowest Tests
+            </button>
 
             <!-- Collapsible Content -->
             <div id="collapsibleContent" class="collapsible-content expanded">
@@ -189,6 +192,39 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div id="slowestTestsCollapsibleContent" class="collapsible-content">
+
+                <div class="slowest-tests-container">
+                <h2><i class="fas fa-hourglass-half"></i> Slowest Tests</h2>
+                <!-- Filters for Slowest Tests -->
+                <div class="filter-container">
+                    <div>
+                        <label for="slowestTestsCount">Number of Tests to Display:</label>
+                        <select id="slowestTestsCount">
+                            <option value="5">Top 5</option>
+                            <option value="10" selected>Top 10</option>
+                            <option value="20">Top 20</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Slowest Tests Table -->
+                <div class="table-container">
+                    <table class="pulse-table" id="slowestTestsTable">
+                        <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Class Name</th>
+                            <th>Test Name</th>
+                            <th>Execution Time (s)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Slowest tests will be dynamically populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -300,6 +336,65 @@
         </div>
     </div>
 </section>
+<!-- Test Projects Metrics Section -->
+<section id="test-projects-metrics-section">
+
+    <div class="container">
+        <!-- Add a canvas for the chart -->
+        <div class="widget-container">
+            <h2><i class="fas fa-chart-bar"></i> Test Projects Metrics</h2>
+            <div class="chart-container">
+                <canvas id="testCasesPieChart"></canvas>
+            </div>
+            <!-- Filters -->
+            <div class="filter-container">
+                <div>
+                    <label for="projectMetricsFilter">Filter by Project:</label>
+                    <select id="projectMetricsFilter">
+                        <option value="all">All Projects</option>
+                        <!-- Project options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
+            <!-- Metrics Summary Cards -->
+            <div class="metrics-summary-cards">
+                <div class="summary-card total-classes-card">
+                    <div class="card-count" id="totalClassesCount">0</div>
+                    <div class="card-label">Total Test Classes</div>
+                </div>
+                <div class="summary-card total-cases-card">
+                    <div class="card-count" id="totalCasesCount">0</div>
+                    <div class="card-label">Total Test Cases</div>
+                </div>
+                <div class="summary-card total-ignored-card">
+                    <div class="card-count" id="totalIgnoredCount">0</div>
+                    <div class="card-label">Ignored Tests</div>
+                </div>
+                <div class="summary-card ignored-percentage-card">
+                    <div class="card-count" id="ignoredPercentage">0%</div>
+                    <div class="card-label">Ignored Percentage</div>
+                </div>
+            </div>
+            <!-- Projects Metrics Table -->
+            <div class="table-container">
+                <table class="metrics-table" id="projectsMetricsTable">
+                    <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Total Test Classes</th>
+                        <th>Total Test Cases</th>
+                        <th>Ignored Tests</th>
+                        <th>Ignored Percentage</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Metrics data will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- Delta Details Modal -->
 <div id="deltaModal" class="modal">
@@ -322,6 +417,16 @@
         </div>
     </div>
 </div>
+<!-- Ignored Tests Modal -->
+<div id="ignoredTestsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="closeIgnoredTestsModal">&times;</span>
+        <h2 id="ignoredTestsModalTitle">Ignored Tests</h2>
+        <div class="modal-body" id="ignoredTestsModalBody">
+            <!-- Ignored tests content will be populated here -->
+        </div>
+    </div>
+</div>
 
 <!-- Scripts -->
 <script type="module" src="utils.js"></script>
@@ -332,5 +437,6 @@
 <script type="module" src="event-listeners.js"></script>
 <script type="module" src="init.js"></script>
 <script type="module" src="test-authorship.js"></script>
+<script type="module" src="test-project-metadata.js"></script>
 </body>
 </html>

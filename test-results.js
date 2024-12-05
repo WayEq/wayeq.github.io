@@ -3,16 +3,42 @@
 import {createTestResultsPieChart, renderTestExecutionResultTrendChart} from './chart-handling.js';
 import {getOrdinalSuffix, groupBy} from './utils.js';
 import {loadExecutionData} from './data-fetching.js';
-import {generateCommitUrl} from "./commit-deltas.js"; // Import loadExecutionData to fetch previous execution data
+import {generateCommitUrl} from "./commit-deltas.js";
+import {addSlowestTestsEventListeners} from "./event-listeners.js"; // Import loadExecutionData to fetch previous execution data
 
 // Global variables to store current and previous test results
 let currentTestResults = [];
 let previousTestResults = [];
 
+/**
+ * Formats a time duration from seconds to a human-readable string.
+ * @param {number} seconds - The time duration in seconds.
+ * @returns {string} - Formatted time string (e.g., "1h 23m 45s").
+ */
+function formatTime(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    let formattedTime = '';
+    if (hrs > 0) {
+        formattedTime += `${hrs}h `;
+    }
+    if (mins > 0 || hrs > 0) { // Include minutes if there are hours
+        formattedTime += `${mins}m `;
+    }
+    formattedTime += `${secs}s`;
+
+    return formattedTime;
+}
+
+
+
 export async function displayTestResultsForExecution(executionFileName, comparedExecutionFileName, executionIndexData, executionData) {
     try {
         // Extract metadata
-        const executionTime = executionData.execution_time;
+        const executionStartTime = executionData.execution_start_time || executionData.execution_time; // old format fallback
+        const executionDuration = executionData.execution_duration;
         const testBranch = executionData.test_branch;
         const glideCommit = executionData.glide_commit_hash;
         const executionResults = executionData.test_results; // The array of test results
@@ -28,7 +54,7 @@ export async function displayTestResultsForExecution(executionFileName, compared
             previousTestResults = []; // Empty array if no previous data
         }
 
-        displayTestMetadata(executionTime, testBranch, glideCommit);
+        displayTestMetadata(executionStartTime, executionDuration, testBranch, glideCommit);
 
         renderTestResultsCardsAndPieChart(executionFileName, comparedExecutionFileName, executionIndexData);
 
@@ -37,7 +63,9 @@ export async function displayTestResultsForExecution(executionFileName, compared
 
         // Populate the test results table with filtered data
         populateTestResultsTable(defaultFilteredData, executionFileName, testBranch);
+        populateSlowestTestsTable(executionResults);
 
+        await addSlowestTestsEventListeners(executionResults)
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
 
@@ -158,6 +186,65 @@ export function formatCountWithDelta(metricType, spanId, currentCount, previousC
 
     return `${currentCount} <span id=${spanId} class="delta ${deltaClass}">${deltaSymbol}</span>`;
 }
+
+// Function to populate the Slowest Tests Table
+export function populateSlowestTestsTable(testExecutionResultsData) {
+    const tableBody = document.querySelector('#slowestTestsTable tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    // Get the number of tests to display from the filter
+    const slowestTestsCountSelect = document.getElementById('slowestTestsCount');
+    let slowestTestsCount = parseInt(slowestTestsCountSelect.value, 10);
+
+    // Sort the test results by execution time in descending order
+    const sortedTests = testExecutionResultsData
+        .filter(test => typeof test.time === 'number')
+        .filter(test => ! test.class_name.startsWith("AA_"))
+        .sort((a, b) => b.time - a.time);
+
+    // Get the top N slowest tests
+    const slowestTests = sortedTests.slice(0, slowestTestsCount);
+
+    // Populate the table
+    slowestTests.forEach(test => {
+        const row = document.createElement('tr');
+
+        // Project Name
+        const projectCell = document.createElement('td');
+        projectCell.textContent = test.project_name || '';
+        row.appendChild(projectCell);
+
+        // Class Name
+        const classCell = document.createElement('td');
+        classCell.textContent = test.class_name || '';
+        row.appendChild(classCell);
+
+        // Test Name
+        const testNameCell = document.createElement('td');
+        testNameCell.textContent = test.test_name || '';
+        testNameCell.title = test.test_name;
+        testNameCell.classList.add('test-name');
+        row.appendChild(testNameCell);
+
+        // Execution Time (Formatted and Color Coded)
+        const timeCell = document.createElement('td');
+        const formattedTime = formatTime(test.time);
+        timeCell.textContent = formattedTime;
+        timeCell.title = `Execution Time: ${test.time.toFixed(2)} seconds`; // Tooltip with exact time
+
+        // Apply color coding based on execution time
+        if (test.time > 600) { // Greater than 10 minutes
+            timeCell.classList.add('time-error');
+        } else if (test.time > 300) { // Greater than 5 minutes
+            timeCell.classList.add('time-warning');
+        } // No class for 5 minutes or less
+
+        row.appendChild(timeCell);
+
+        tableBody.appendChild(row);
+    });
+}
+
 
 export function populateTestResultsTable(testExecutionResultsData, executionFileName, testBranch) {
     const tableBody = document.querySelector('#testResultsTable tbody');
@@ -283,7 +370,7 @@ export function applyTestResultsFilters(executionResults, executionFileName) {
     populateTestResultsTable(filteredData, executionFileName, executionResults.test_branch);
 }
 
-function displayTestMetadata(executionTime, testBranch, glideCommit) {
+function displayTestMetadata(executionTime, executionDuration, testBranch, glideCommit) {
     const metadataContainer = document.getElementById('testMetadata');
 
     // Format the execution time
@@ -294,6 +381,7 @@ function displayTestMetadata(executionTime, testBranch, glideCommit) {
     metadataContainer.innerHTML = `
         <p><strong><i class="far fa-clock"></i> Execution Time:</strong> ${formattedExecutionTime}</p>
         <p><strong><i class="fas fa-code-branch"></i> Branch:</strong> ${testBranch}${commit}</p>
+        ${executionDuration ? `<p><strong><i class="fas fa-extra-icon"></i> Duration:</strong> ${executionDuration}</p>` : ''}
     `;
 }
 

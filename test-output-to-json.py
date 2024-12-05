@@ -145,8 +145,42 @@ def update_index_file(output_filename, execution_time, test_branch, counts):
     except Exception as e:
         print(f"Error writing to index file {INDEX_FILE}: {e}")
 
+from datetime import datetime
+
+def get_execution_duration(execution_start_time, execution_end_time):
+
+    # Parse the input strings into datetime objects
+    start_time = datetime.strptime(execution_start_time, "%Y-%m-%dT%H:%M:%SZ")
+    end_time = datetime.strptime(execution_end_time, "%Y-%m-%dT%H:%M:%SZ")
+
+    # Calculate the duration
+    duration = end_time - start_time
+
+    # Format the duration as a string
+    hours, remainder = divmod(duration.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    duration_string = f"{hours}h {minutes}m {seconds}s"
+    return duration_string
+
+
 import subprocess
 import os
+def parse_and_format_time(timestamp, default_now=True):
+    """Parse an ISO 8601 timestamp and format it to '%Y-%m-%d %H:%M:%S'.
+    If parsing fails or timestamp is empty, return the current time or the original string."""
+    if timestamp:
+        try:
+            # Parse and format the timestamp
+            parsed_time = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
+            return parsed_time.strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError as e:
+            print(f"Error parsing timestamp: {e}")
+            return timestamp  # Use the original string as fallback
+    elif default_now:
+        # Use current time if no timestamp is provided
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return None
 
 def main():
     # Collect all test cases directly
@@ -186,19 +220,13 @@ def main():
             'test_branch': ''
         }
 
-    # Format execution_time
+    execution_start_time = execution_metadata.get('execution_start_time', '')
     execution_end_time = execution_metadata.get('execution_end_time', '')
-    if execution_end_time:
-        # Parse ISO 8601 format
-        try:
-            execution_time_dt = datetime.strptime(execution_end_time, '%Y-%m-%dT%H:%M:%SZ')
-            # Format to desired string format
-            execution_time_str = execution_time_dt.strftime('%Y-%m-%d %H:%M:%S')
-        except ValueError as e:
-            print(f"Error parsing execution_end_time: {e}")
-            execution_time_str = execution_end_time  # Use as is
-    else:
-        execution_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    execution_start_time_str = parse_and_format_time(execution_start_time)
+    execution_end_time_str = parse_and_format_time(execution_end_time)
+
+    duration = get_execution_duration(execution_start_time, execution_end_time)
 
     test_branch = execution_metadata.get('test_branch', '')
 
@@ -207,7 +235,9 @@ def main():
     glide_test_hash = execution_metadata.get('test_commit', '')
     # Prepare the final output JSON structure
     output_data = {
-        'execution_time': execution_time_str,
+        'execution_start_time': execution_start_time_str,
+        'execution_end_time': execution_end_time_str,
+        'execution_duration': duration,
         'test_branch': test_branch,
         'glide_commit_hash': glide_hash,
         'glide_test_commit_hash': glide_test_hash,
@@ -223,6 +253,7 @@ def main():
     }
 
     # Generate timestamped filename
+    execution_time_dt = datetime.strptime(execution_end_time, '%Y-%m-%dT%H:%M:%SZ')
     timestamp = execution_time_dt.strftime('%Y%m%d_%H%M%S')
     output_filename = f"test_results_{timestamp}.json"
     output_filepath = os.path.join(OUTPUT_DIR, output_filename)
@@ -236,7 +267,7 @@ def main():
         print(f"Error writing to JSON file {output_filepath}: {e}")
 
     # Update the index file with counts
-    update_index_file(output_filename, execution_time_str, test_branch, counts)
+    update_index_file(output_filename, execution_start_time_str, test_branch, counts)
 
 if __name__ == '__main__':
     main()
