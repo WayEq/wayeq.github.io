@@ -7,6 +7,11 @@ import os
 import subprocess
 import argparse
 
+WORKING_DIR = '/Users/aaron.shoal/dev/wayeq.github.io'
+TEST_RESULTS_DIR = os.path.join(WORKING_DIR, 'test_results')
+TEST_RESULTS_FILE = os.path.join(TEST_RESULTS_DIR, 'test_results_index.json')
+COMMIT_DELTAS_FILE = os.path.join(WORKING_DIR, 'commit_deltas.json')
+
 def load_json_file(json_path):
     """
     Load and parse a JSON file.
@@ -184,21 +189,16 @@ def parse_arguments():
 def main():
     # Parse command-line arguments
     args = parse_arguments()
-
-    # Paths to the JSON files
-    test_results_json_path = '../test_results/test_results_index.json'
-    commit_deltas_json_path = '../commit_deltas.json'
-
     webhook_url = 'https://servicenow.cloud.mattermost.com/hooks/7ktimf6k8jdw7rr8e7ciziqzyo'
 
     # Load test results
-    test_results = load_json_file(test_results_json_path)
+    test_results = load_json_file(TEST_RESULTS_FILE)
     if not test_results:
         print("No test results found in the JSON file.")
         sys.exit(0)
 
     # Load commit deltas
-    commit_deltas_data = load_json_file(commit_deltas_json_path)
+    commit_deltas_data = load_json_file(COMMIT_DELTAS_FILE)
     if not commit_deltas_data:
         print("No commit deltas found in the JSON file.")
         commit_deltas_data = []
