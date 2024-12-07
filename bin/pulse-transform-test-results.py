@@ -8,6 +8,7 @@ from datetime import datetime
 # Base directory containing all project repositories
 TEST_REPO = '/Users/aaron.shoal/dev/glide-test'
 GLIDE_REPO = '/Users/aaron.shoal/dev/gll/glide'
+WORKING_DIR = '/Users/aaron.shoal/dev/wayeq.github.io'
 
 # List of projects to process
 PROJECTS = [
@@ -21,7 +22,7 @@ PROJECTS = [
 ]
 
 # Output directory for JSON files
-OUTPUT_DIR = 'test_results'
+OUTPUT_DIR = os.path.join(WORKING_DIR, 'test_results')
 
 # Ensure the output directory exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -209,7 +210,7 @@ def main():
         print("No test results found. Please check the project directories and XML files.")
         return
 
-    # Read execution metadata from /tmp/zen/execution_metadata.json
+    # Read execution metadata from EXECUTION_METADATA_JSON
     try:
         with open(EXECUTION_METADATA_JSON, 'r') as f:
             execution_metadata = json.load(f)
@@ -230,9 +231,10 @@ def main():
 
     test_branch = execution_metadata.get('test_branch', '')
 
-	# Get the commit hash
+    # Get the commit hash
     glide_hash = execution_metadata.get('glide_commit', '')
     glide_test_hash = execution_metadata.get('test_commit', '')
+
     # Prepare the final output JSON structure
     output_data = {
         'execution_start_time': execution_start_time_str,
@@ -253,8 +255,13 @@ def main():
     }
 
     # Generate timestamped filename
-    execution_time_dt = datetime.strptime(execution_end_time, '%Y-%m-%dT%H:%M:%SZ')
-    timestamp = execution_time_dt.strftime('%Y%m%d_%H%M%S')
+    try:
+        execution_time_dt = datetime.strptime(execution_end_time, '%Y-%m-%dT%H:%M:%SZ')
+        timestamp = execution_time_dt.strftime('%Y%m%d_%H%M%S')
+    except ValueError as e:
+        print(f"Error parsing execution_end_time: {e}")
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
     output_filename = f"test_results_{timestamp}.json"
     output_filepath = os.path.join(OUTPUT_DIR, output_filename)
 

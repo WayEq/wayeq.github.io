@@ -441,5 +441,45 @@
                 "message": "STRY58689619 : fixing dependency errors for sonar report for IT (#83209)"
             }
         ]
+    },
+    {
+        "from_execution_time": "2024-12-03 01:55:43",
+        "to_execution_time": "2024-12-06 21:42:00",
+        "from_filename": "test_results_20241203_015543.json",
+        "to_filename": "test_results_20241207_033241.json",
+        "glide_commits": [
+            {
+                "commit": "ddd6593bbd7b8c01e7bfc6b7b99d552bbea3a729",
+                "author": "Noor Mazhar",
+                "date": "2024-12-05 08:52:37 -0800",
+                "message": "DEF0591267: Cancelling queued seeding requests can result in seeding requests getting stuck (#146681)"
+            }
+        ],
+        "glide_test_commits": [
+            {
+                "commit": "8b09f332437a4c69ca0390347923255620c8feea",
+                "author": "Aaron Shoal",
+                "date": "2024-12-05 05:33:37 -0800",
+                "message": "MAINT Fix Legacy Run After Test Migration"
+            },
+            {
+                "commit": "ac1d4a3da45a04baafec8343ae6e61976a4d3353",
+                "author": "Aaron Shoal",
+                "date": "2024-12-04 13:51:37 -0800",
+                "message": "MAINT Migrate Test To New Framework"
+            },
+            {
+                "commit": "d69edc35b1936f32ef0d546d9e612e653fb381b2",
+                "author": "Aaron Shoal",
+                "date": "2024-12-04 13:51:37 -0800",
+                "message": "MAINT Migrate Test To New Framework"
+            },
+            {
+                "commit": "67bb4095c4fe3cd3afbd8f4e9a2fae24913e6eff",
+                "author": "Aaron Shoal",
+                "date": "2024-12-03 11:36:34 -0800",
+                "message": "Try to fix nightly tests"
+            }
+        ]
     }
 ]

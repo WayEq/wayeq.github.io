@@ -1,18 +1,17 @@
 // event-listeners.js
 
 import {applyTestResultsFilters, displayTestResultsForExecution, populateSlowestTestsTable} from './test-results.js';
-import { expandCollapsibleContent } from './utils.js';
 import { populateCommitDeltasTable } from './commit-deltas.js';
 import { renderTestVelocityAndAuthorshipSection, resetAuthorshipDetailsTable } from "./test-authorship.js";
 import { loadExecutionData } from "./data-fetching.js";
 import { showDeltaDetails } from './test-results.js'; // Import the showDeltaDetails function
 
 
-export function addSlowestTestsEventListeners(currentTestExecutionResultsData) {
+export function addSlowestTestsEventListeners(currentTestExecutionResultsData, executionFileName, testBranch) {
     // Event listener for the number of tests filter
     document.getElementById('slowestTestsCount').addEventListener('change', () => {
         // Call the function to repopulate the table when the filter changes
-        populateSlowestTestsTable(currentTestExecutionResultsData);
+        populateSlowestTestsTable(currentTestExecutionResultsData, executionFileName, testBranch);
     });
 }
 

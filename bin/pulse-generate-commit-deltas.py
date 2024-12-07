@@ -9,12 +9,9 @@ from datetime import datetime
 # Paths to your repositories
 TEST_REPO = '/Users/aaron.shoal/dev/glide-test'
 GLIDE_REPO = '/Users/aaron.shoal/dev/gll/glide'
-
-# Path to the test results directory
-TEST_RESULTS_DIR = 'test_results'
-
-# Output file
-OUTPUT_FILE = 'commit_deltas.json'
+WORKING_DIR = '/Users/aaron.shoal/dev/wayeq.github.io'
+TEST_RESULTS_DIR = os.path.join(WORKING_DIR, 'test_results')
+OUTPUT_FILE = os.path.join(WORKING_DIR, 'commit_deltas.json')
 
 def load_test_results_index():
     index_file = os.path.join(TEST_RESULTS_DIR, 'test_results_index.json')

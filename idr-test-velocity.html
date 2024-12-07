@@ -7,7 +7,8 @@
     <title>Automated Testing Pulse</title>
 
     <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,11 +37,13 @@
 <div class="container">
     <div class="useful-links-section subtle-links">
         <ul class="useful-links-row">
-            <li><a href="https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2Fcom%2Fglide"
+            <li>
+                <a href="https://metrics.devsnc.com/code?id=com.snc%3Asonar-glide-idr&branch=track%2Fidrhermes&selected=com.snc%3Asonar-glide-idr%3Amodules%2Fglide%2Fglide-idr%2Fsrc%2Fmain%2Fjava%2Fcom%2Fglide"
                    target="_blank">Code Coverage</a></li>
             <li><a href="https://servicenow.sharepoint.com/sites/hermes/SitePages/Dependable-IT-Framework-Training.aspx"
                    target="_blank">IT Framework Training</a></li>
-            <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do" target="_blank">Nightly
+            <li><a href="https://buildtools1.service-now.com/generateConsolidatedTestResultsForTrackEco.do"
+                   target="_blank">Nightly
                 IT Results</a></li>
             <li><a href="https://code.devsnc.com/aaron-shoal/it-runner" target="_blank">Zen IT Runner</a></li>
             <li>
@@ -114,7 +117,8 @@
             <div class="charts-container">
                 <!-- Pie Chart -->
                 <div class="chart-item pie-chart-item">
-                    <canvas id="testResultsPieChart" aria-label="Pie chart showing test distribution" role="img"></canvas>
+                    <canvas id="testResultsPieChart" aria-label="Pie chart showing test distribution"
+                            role="img"></canvas>
                 </div>
                 <!-- Trend Chart -->
                 <div class="chart-item trend-chart-item">
@@ -135,96 +139,100 @@
 
             <!-- Collapsible Content -->
             <div id="collapsibleContent" class="collapsible-content expanded">
-                <h2>Test Results</h2>
-                <!-- Filters for Test Results -->
-                <div class="filter-container">
-                    <div>
-                        <label for="resultFilter">Show Tests:</label>
-                        <select id="resultFilter">
-                            <option value="failed">Failed Tests</option>
-                            <option value="all">All Tests</option>
-                        </select>
+                <div class="integration-tests-table-container">
+                    <h2><i class="fa-solid fa-microscope"></i> Test Results</h2>
+                    <!-- Filters for Test Results -->
+                    <div class="filter-container">
+                        <div>
+                            <label for="resultFilter">Show Tests:</label>
+                            <select id="resultFilter">
+                                <option value="failed">Failed Tests</option>
+                                <option value="all">All Tests</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="projectNameFilter">Filter by Project:</label>
+                            <select id="projectNameFilter">
+                                <option value="all">All Projects</option>
+                                <!-- Project names will be dynamically populated -->
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label for="projectNameFilter">Filter by Project:</label>
-                        <select id="projectNameFilter">
-                            <option value="all">All Projects</option>
-                            <!-- Project names will be dynamically populated -->
-                        </select>
+                    <!-- Test Results Table -->
+                    <div class="table-container">
+                        <table class="pulse-table" id="testResultsTable">
+                            <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Class Name</th>
+                                <th>Test Name</th>
+                                <th>Result</th>
+                                <th>Error Details</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Test results will be dynamically populated here -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <!-- Test Results Table -->
-                <div class="table-container">
-                    <table class="pulse-table" id="testResultsTable">
-                        <thead>
-                        <tr>
-                            <th>Project Name</th>
-                            <th>Class Name</th>
-                            <th>Test Name</th>
-                            <th>Result</th>
-                            <th>Error Details</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Test results will be dynamically populated here -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
             <!-- Collapsible Content for Commit Details -->
             <div id="commitsCollapsibleContent" class="collapsible-content">
-                <h2>Commits Between Test Executions</h2>
-                <!-- Commit Deltas Table -->
-                <div class="table-responsive">
-                    <table class="commit-deltas-table" id="commitDeltasTable">
-                        <thead>
-                        <tr>
-                            <th>Repository</th>
-                            <th>Commit</th>
-                            <th>Author</th>
-                            <th>Date</th>
-                            <th>Message</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Commit deltas will be dynamically populated here -->
-                        </tbody>
-                    </table>
+                <div class="integration-tests-table-container">
+                    <h2><i class="fas fa-code-branch"></i>Commits Between Test Executions</h2>
+                    <!-- Commit Deltas Table -->
+                    <div class="table-responsive">
+                        <table class="commit-deltas-table" id="commitDeltasTable">
+                            <thead>
+                            <tr>
+                                <th>Repository</th>
+                                <th>Commit</th>
+                                <th>Author</th>
+                                <th>Date</th>
+                                <th>Message</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Commit deltas will be dynamically populated here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div id="slowestTestsCollapsibleContent" class="collapsible-content">
-
-                <div class="slowest-tests-container">
-                <h2><i class="fas fa-hourglass-half"></i> Slowest Tests</h2>
-                <!-- Filters for Slowest Tests -->
-                <div class="filter-container">
-                    <div>
-                        <label for="slowestTestsCount">Number of Tests to Display:</label>
-                        <select id="slowestTestsCount">
-                            <option value="5">Top 5</option>
-                            <option value="10" selected>Top 10</option>
-                            <option value="20">Top 20</option>
-                        </select>
+                <div class="integration-tests-table-container">
+                    <h2><i class="fas fa-hourglass-half"></i> Slowest Tests</h2>
+                    <!-- Filters for Slowest Tests -->
+                    <div class="filter-container">
+                        <div>
+                            <label for="slowestTestsCount">Number of Tests to Display:</label>
+                            <select id="slowestTestsCount">
+                                <option value="5">Top 5</option>
+                                <option value="10" selected>Top 10</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Slowest Tests Table -->
+                    <div class="table-responsive">
+                        <table class="pulse-table" id="slowestTestsTable">
+                            <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Class Name</th>
+                                <th>Test Name</th>
+                                <th>Duration</th>
+                                <th>Details</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Slowest tests will be dynamically populated here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <!-- Slowest Tests Table -->
-                <div class="table-container">
-                    <table class="pulse-table" id="slowestTestsTable">
-                        <thead>
-                        <tr>
-                            <th>Project Name</th>
-                            <th>Class Name</th>
-                            <th>Test Name</th>
-                            <th>Execution Time (s)</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Slowest tests will be dynamically populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
             </div>
         </div>
     </div>

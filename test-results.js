@@ -63,9 +63,9 @@ export async function displayTestResultsForExecution(executionFileName, compared
 
         // Populate the test results table with filtered data
         populateTestResultsTable(defaultFilteredData, executionFileName, testBranch);
-        populateSlowestTestsTable(executionResults);
+        populateSlowestTestsTable(executionResults, executionFileName, testBranch);
 
-        await addSlowestTestsEventListeners(executionResults)
+        await addSlowestTestsEventListeners(executionResults, testBranch, executionFileName)
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
 
@@ -188,7 +188,7 @@ export function formatCountWithDelta(metricType, spanId, currentCount, previousC
 }
 
 // Function to populate the Slowest Tests Table
-export function populateSlowestTestsTable(testExecutionResultsData) {
+export function populateSlowestTestsTable(testExecutionResultsData, executionFileName, testBranch) {
     const tableBody = document.querySelector('#slowestTestsTable tbody');
     tableBody.innerHTML = ''; // Clear existing rows
 
@@ -233,13 +233,28 @@ export function populateSlowestTestsTable(testExecutionResultsData) {
         timeCell.title = `Execution Time: ${test.time.toFixed(2)} seconds`; // Tooltip with exact time
 
         // Apply color coding based on execution time
-        if (test.time > 600) { // Greater than 10 minutes
+        if (test.time > 300) { // Greater than 5 minutes
             timeCell.classList.add('time-error');
-        } else if (test.time > 300) { // Greater than 5 minutes
+        } else if (test.time > 180) { // Greater than 3 minutes
             timeCell.classList.add('time-warning');
         } // No class for 5 minutes or less
+        const detailsCell = document.createElement('td');
+        const detailsButton = document.createElement('button');
+        detailsButton.textContent = 'Details';
+        detailsButton.onclick = () => {
+            window.open(
+                'test-result.html?project=' + encodeURIComponent(test.project_name) +
+                '&class=' + encodeURIComponent(test.class_name) +
+                '&branch=' + encodeURIComponent(testBranch) +
+                '&test=' + encodeURIComponent(test.test_name) +
+                '&execution=' + encodeURIComponent(executionFileName),
+                '_blank'
+            );
+        };
+        detailsCell.appendChild(detailsButton);
 
         row.appendChild(timeCell);
+        row.appendChild(detailsCell);
 
         tableBody.appendChild(row);
     });
@@ -464,7 +479,7 @@ function displayDeltaModal(resultType, deltaTests) {
     const closeModal = document.getElementById('closeDeltaModal');
 
     // Set the title based on result type
-    modalTitle.innerText = `Tests Contributing to ${capitalizeFirstLetter(resultType)} Delta`;
+    modalTitle.innerHTML = `<i class="fas fa-chart-line"></i> Tests Contributing to ${capitalizeFirstLetter(resultType)} Delta`;
 
     // Clear previous content
     modalBody.innerHTML = '';

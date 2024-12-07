@@ -431,7 +431,8 @@ td a:hover {
 
 .flex-container {
     display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    flex-wrap: nowrap;
     gap: 20px;
 }
 
@@ -740,58 +741,58 @@ td a:hover {
 }
 
 /* Slowest Tests Section */
-.slowest-tests-container {
-    margin-top: 40px;
+.integration-tests-table-container {
+    margin-top: 20px;
 }
 
-.slowest-tests-container h2 {
+.integration-tests-table-container h2 {
     font-size: 1.5em;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
 }
 
-.slowest-tests-container h2 i {
+.integration-tests-table-container h2 i {
     margin-right: 10px;
     color: var(--primary-color);
 }
 
-.slowest-tests-container .filter-container {
+.integration-tests-table-container .filter-container {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.slowest-tests-container .filter-container label {
+.integration-tests-table-container .filter-container label {
     font-weight: 600;
     margin-right: 10px;
 }
 
-.slowest-tests-container .filter-container select {
+.integration-tests-table-container .filter-container select {
     padding: 8px;
     font-size: 1em;
     border-radius: 4px;
     border: 1px solid #ccc;
 }
 
-.slowest-tests-container .table-container {
+.integration-tests-table-container .table-container {
     max-height: 400px; /* Adjust as needed */
     overflow-y: auto;
 }
 
-.slowest-tests-container .pulse-table {
+.integration-tests-table-container .pulse-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.slowest-tests-container .pulse-table th,
-.slowest-tests-container .pulse-table td {
+.integration-tests-table-container .pulse-table th,
+.integration-tests-table-container .pulse-table td {
     border: 1px solid #ddd;
     padding: 12px 15px;
     text-align: left;
 }
 
-.slowest-tests-container .pulse-table th {
+.integration-tests-table-container .pulse-table th {
     background-color: var(--primary-color);
     color: #fff;
     position: sticky;
@@ -799,24 +800,25 @@ td a:hover {
     z-index: 1;
 }
 
-.slowest-tests-container .pulse-table tbody tr:nth-child(even) {
+.integration-tests-table-container .pulse-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.slowest-tests-container .pulse-table tbody tr:hover {
+.integration-tests-table-container .pulse-table tbody tr:hover {
     background-color: #e6f7ff;
 }
 
 /* Slowest Tests Section */
-.slowest-tests-container {
+.integration-tests-table-container {
     margin-top: 40px;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
+    border: 1px solid #ccc;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.slowest-tests-container h2 {
+.integration-tests-table-container h2 {
     font-size: 1.5em;
     margin-bottom: 20px;
     display: flex;
@@ -824,23 +826,23 @@ td a:hover {
     color: var(--dark-color);
 }
 
-.slowest-tests-container h2 i {
+.integration-tests-table-container h2 i {
     margin-right: 10px;
     color: var(--primary-color);
 }
 
-.slowest-tests-container .filter-container {
+.integration-tests-table-container .filter-container {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.slowest-tests-container .filter-container label {
+.integration-tests-table-container .filter-container label {
     font-weight: 600;
     margin-right: 10px;
 }
 
-.slowest-tests-container .filter-container select {
+.integration-tests-table-container .filter-container select {
     padding: 8px;
     font-size: 1em;
     border-radius: 4px;
@@ -849,26 +851,26 @@ td a:hover {
     color: #333;
 }
 
-.slowest-tests-container .table-container {
+.integration-tests-table-container .table-container {
     max-height: 400px; /* Adjust as needed */
     overflow-y: auto;
 }
 
-.slowest-tests-container .pulse-table {
+.integration-tests-table-container .pulse-table {
     width: 100%;
     border-collapse: collapse;
     font-family: var(--font-family);
 }
 
-.slowest-tests-container .pulse-table th,
-.slowest-tests-container .pulse-table td {
+.integration-tests-table-container .pulse-table th,
+.integration-tests-table-container .pulse-table td {
     border: 1px solid #dee2e6;
     padding: 12px 15px;
     text-align: left;
     font-size: 0.95em;
 }
 
-.slowest-tests-container .pulse-table th {
+.integration-tests-table-container .pulse-table th {
     background-color: var(--primary-color);
     color: #fff;
     position: sticky;
@@ -876,23 +878,22 @@ td a:hover {
     z-index: 1;
 }
 
-.slowest-tests-container .pulse-table tbody tr:nth-child(even) {
+.integration-tests-table-container .pulse-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.slowest-tests-container .pulse-table tbody tr:hover {
+.integration-tests-table-container .pulse-table tbody tr:hover {
     background-color: #e6f7ff;
 }
 
-.slowest-tests-container .pulse-table td.test-name {
+.integration-tests-table-container .pulse-table td.test-name {
     max-width: 250px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.slowest-tests-container .pulse-table td.test-name:hover {
-    overflow: visible;
+.integration-tests-table-container .pulse-table td.test-name:hover {
     white-space: normal;
     background-color: #fff3cd;
     cursor: pointer;
@@ -900,12 +901,12 @@ td a:hover {
 
 /* Color Coding for Execution Time */
 .time-warning {
-    color: #856404; /* Dark Yellow */
+    color: var(--warning-color);
     font-weight: bold;
 }
 
 .time-error {
-    color: #721c24; /* Dark Red */
+    color: var(--danger-color);
     font-weight: bold;
 }
 
@@ -920,19 +921,19 @@ td a:hover {
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .slowest-tests-container .filter-container {
+    .integration-tests-table-container .filter-container {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .slowest-tests-container .filter-container label,
-    .slowest-tests-container .filter-container select {
+    .integration-tests-table-container .filter-container label,
+    .integration-tests-table-container .filter-container select {
         width: 100%;
         margin-bottom: 10px;
     }
 
-    .slowest-tests-container .pulse-table th,
-    .slowest-tests-container .pulse-table td {
+    .integration-tests-table-container .pulse-table th,
+    .integration-tests-table-container .pulse-table td {
         padding: 10px;
         font-size: 0.9em;
     }
@@ -1090,7 +1091,6 @@ td a:hover {
 .chart-container {
     position: relative;
     width: 100%;
-    max-width: 600px;
     margin: 0 auto 30px auto;
 }
 
@@ -1105,6 +1105,3 @@ td a:hover {
         max-width: 100%;
     }
 }
-
-/* Additional styling for the rest of the section... */
-/* (Existing CSS for filters, summary cards, tables, etc.) */

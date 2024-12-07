@@ -1,3 +1,5 @@
+#!/opt/homebrew/bin/python3
+
 import os
 import subprocess
 import re
@@ -21,6 +23,9 @@ integration_projects = [
    "snc-idr-test",
    "idr-di-dct-test"
 ]
+
+WORKING_DIR = '/Users/aaron.shoal/dev/wayeq.github.io'
+OUTPUT_FILE = os.path.join(WORKING_DIR, 'test_analysis_results.json')
 
 synonyms = {
         "Anil Enukollu": "Anil Kumar Enukollu",
@@ -224,9 +229,8 @@ output_data = {
     "author_test_count": author_test_count_sorted
 }
 
-output_file = "test_analysis_results.json"
-with open(output_file, 'w') as f:
+with open(OUTPUT_FILE, 'w') as f:
     json.dump(output_data, f, indent=4)
 
-print(f"Results saved to {output_file}")
+print(f"Results saved to {OUTPUT_FILE}")
 

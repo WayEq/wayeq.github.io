@@ -186,8 +186,8 @@ def main():
     args = parse_arguments()
 
     # Paths to the JSON files
-    test_results_json_path = 'test_results/test_results_index.json'
-    commit_deltas_json_path = 'commit_deltas.json'
+    test_results_json_path = '../test_results/test_results_index.json'
+    commit_deltas_json_path = '../commit_deltas.json'
 
     webhook_url = 'https://servicenow.cloud.mattermost.com/hooks/7ktimf6k8jdw7rr8e7ciziqzyo'
 

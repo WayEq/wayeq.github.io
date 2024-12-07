@@ -12,6 +12,9 @@ PROJECTS = [
     'idr-test-frontend',
     'idr-di-dct-test'
 ]
+
+output_file = '../test_project_metrics.json'
+
 def collect_test_metrics(test_projects_dir):
     project_metrics = []
 
@@ -106,7 +109,6 @@ def main():
     resolved_path = os.path.expanduser(test_projects_dir)
 
     metrics = collect_test_metrics(resolved_path)
-    output_file = 'test_project_metrics.json'
 
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(metrics, f, indent=4)
