@@ -328,6 +328,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    margin-bottom: 20px;
     background-color: #ffffff;
 }
 
@@ -1096,6 +1097,18 @@ td a:hover {
 
 .chart-container canvas {
     width: 75% !important;
+    height: auto !important;
+}
+
+/* Chart Container */
+.chart-container-smaller {
+    position: relative;
+    width: 100%;
+    margin: 0 auto 30px auto;
+}
+
+.chart-container-smaller canvas {
+    width: 45% !important;
     height: auto !important;
 }
 

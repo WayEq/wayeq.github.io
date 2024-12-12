@@ -214,6 +214,8 @@
                                 <option value="20">Top 20</option>
                             </select>
                         </div>
+                        <input type="checkbox" id="filterSetupFixtures" checked>
+                            <label for="filterSetupFixtures">Ignore Setup Tests</label>
                     </div>
                     <!-- Slowest Tests Table -->
                     <div class="table-responsive">
@@ -229,6 +231,20 @@
                             </thead>
                             <tbody>
                             <!-- Slowest tests will be dynamically populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <h2><i class="fas fa-clock"></i> Test Project Durations</h2>
+                    <div class="table-responsive">
+                        <table class="pulse-table" id="testProjectDurationsTable">
+                            <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Duration (s)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Project durations will be dynamically populated here -->
                             </tbody>
                         </table>
                     </div>
@@ -364,6 +380,7 @@
                     </select>
                 </div>
             </div>
+
             <!-- Metrics Summary Cards -->
             <div class="metrics-summary-cards">
                 <div class="summary-card total-classes-card">

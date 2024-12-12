@@ -65,6 +65,9 @@ export async function displayTestResultsForExecution(executionFileName, compared
         populateTestResultsTable(defaultFilteredData, executionFileName, testBranch);
         populateSlowestTestsTable(executionResults, executionFileName, testBranch);
 
+        // Populate the project durations table
+        populateTestProjectDurationsTable(executionData);
+
         await addSlowestTestsEventListeners(executionResults, testBranch, executionFileName)
         // Populate the project filter options
         populateTestResultsFilters(executionResults);
@@ -153,15 +156,6 @@ function renderTestResultsCardsAndPieChart(executionFileName, comparedExecutionF
     createTestResultsPieChart(currentCounts.passed, currentCounts.failed, currentCounts.error, currentCounts.skipped);
 }
 
-export function calculateTestCounts(testData) {
-    return {
-        passed: testData.filter(test => test.result === 'passed').length,
-        failed: testData.filter(test => test.result === 'failed').length,
-        error: testData.filter(test => test.result === 'error').length,
-        skipped: testData.filter(test => test.result === 'skipped').length
-    };
-}
-
 export function formatCountWithDelta(metricType, spanId, currentCount, previousCount) {
     if (previousCount === null) {
         // No previous data, just display the current count
@@ -189,6 +183,7 @@ export function formatCountWithDelta(metricType, spanId, currentCount, previousC
 
 // Function to populate the Slowest Tests Table
 export function populateSlowestTestsTable(testExecutionResultsData, executionFileName, testBranch) {
+    const filterSetupFixtures = document.getElementById('filterSetupFixtures').checked;
     const tableBody = document.querySelector('#slowestTestsTable tbody');
     tableBody.innerHTML = ''; // Clear existing rows
 
@@ -197,13 +192,15 @@ export function populateSlowestTestsTable(testExecutionResultsData, executionFil
     let slowestTestsCount = parseInt(slowestTestsCountSelect.value, 10);
 
     // Sort the test results by execution time in descending order
-    const sortedTests = testExecutionResultsData
-        .filter(test => typeof test.time === 'number')
-        .filter(test => ! test.class_name.startsWith("AA_"))
-        .sort((a, b) => b.time - a.time);
+    let filteredTests = testExecutionResultsData
+        .filter(test => typeof test.time === 'number');
 
+    if (filterSetupFixtures) {
+        filteredTests = filteredTests.filter(test => !test.class_name.startsWith("AA_"))
+            .filter(test => !test.class_name.startsWith("ZZ_"))
+    }
     // Get the top N slowest tests
-    const slowestTests = sortedTests.slice(0, slowestTestsCount);
+    const slowestTests = filteredTests.sort((a, b) => b.time - a.time).slice(0, slowestTestsCount);
 
     // Populate the table
     slowestTests.forEach(test => {
@@ -261,6 +258,46 @@ export function populateSlowestTestsTable(testExecutionResultsData, executionFil
 }
 
 
+// New function to populate the Test Project Durations Table
+function populateTestProjectDurationsTable(executionData) {
+    const durationsTableBody = document.querySelector('#testProjectDurationsTable tbody');
+    durationsTableBody.innerHTML = ''; // Clear existing rows
+
+    const metrics = Object.entries(executionData.test_project_metrics)
+        .sort(([, a], [, b]) => b.duration - a.duration)
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+        }, {});
+
+    // metrics is an object with project names as keys
+    // e.g. "idr-test-frontend": { "start_time": "...", "end_time": "...", "duration": 5986 }
+
+    for (const projectName in metrics) {
+        const data = metrics[projectName];
+        const row = document.createElement('tr');
+
+        const projectCell = document.createElement('td');
+        projectCell.textContent = projectName;
+        row.appendChild(projectCell);
+
+        const durationCell = document.createElement('td');
+
+
+        const formattedTime = formatTime(data.duration);
+        durationCell.textContent = formattedTime ? formattedTime : '';
+
+        // Apply color coding based on execution time
+        if (data.duration > 1800) { // Greater than 30 minutes
+            durationCell.classList.add('time-error');
+        } else if (data.duration > 1200) { // Greater than 20 minutes
+            durationCell.classList.add('time-warning');
+        } // No class for 5 minutes or less
+        row.appendChild(durationCell);
+
+        durationsTableBody.appendChild(row);
+    }
+}
 export function populateTestResultsTable(testExecutionResultsData, executionFileName, testBranch) {
     const tableBody = document.querySelector('#testResultsTable tbody');
     tableBody.innerHTML = ''; // Clear existing rows

@@ -13,6 +13,10 @@ export function addSlowestTestsEventListeners(currentTestExecutionResultsData, e
         // Call the function to repopulate the table when the filter changes
         populateSlowestTestsTable(currentTestExecutionResultsData, executionFileName, testBranch);
     });
+    document.getElementById('filterSetupFixtures').addEventListener('change', () => {
+        // Call the function to repopulate the table when the filter changes
+        populateSlowestTestsTable(currentTestExecutionResultsData, executionFileName, testBranch);
+    });
 }
 
 export function addTestExecutionResultEventListeners(executionIndexData, commitDeltaData) {

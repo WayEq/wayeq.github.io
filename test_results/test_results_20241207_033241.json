@@ -5,6 +5,43 @@
     "test_branch": "track/idrhermes",
     "glide_commit_hash": "ddd6593bbd7b",
     "glide_test_commit_hash": "add681a48e64d",
+    "test_project_metrics": {
+        "idr-test-frontend": {
+            "start_time": "2024-12-06T22:37:06Z",
+            "end_time": "2024-12-07T00:16:52Z",
+            "duration": 5986
+        },
+        "idr-test": {
+            "start_time": "2024-12-06T21:42:00Z",
+            "end_time": "2024-12-06T22:36:59Z",
+            "duration": 3299
+        },
+        "idr-di-test": {
+            "start_time": "2024-12-07T00:16:59Z",
+            "end_time": "2024-12-07T00:33:31Z",
+            "duration": 992
+        },
+        "idr-di-test-frontend": {
+            "start_time": "2024-12-07T00:33:33Z",
+            "end_time": "2024-12-07T01:14:53Z",
+            "duration": 2480
+        },
+        "snc-idr-test": {
+            "start_time": "2024-12-07T01:14:56Z",
+            "end_time": "2024-12-07T02:48:08Z",
+            "duration": 5592
+        },
+        "glide-idr-di-test": {
+            "start_time": "2024-12-07T02:48:15Z",
+            "end_time": "2024-12-07T03:12:20Z",
+            "duration": 1445
+        },
+        "idr-di-dct-test": {
+            "start_time": "2024-12-07T03:12:24Z",
+            "end_time": "2024-12-07T03:32:38Z",
+            "duration": 1214
+        }
+    },
     "test_results": [
         {
             "project_name": "snc-idr-test",

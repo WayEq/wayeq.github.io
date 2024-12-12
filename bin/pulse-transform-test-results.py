@@ -230,7 +230,7 @@ def main():
     duration = get_execution_duration(execution_start_time, execution_end_time)
 
     test_branch = execution_metadata.get('test_branch', '')
-
+    test_project_metrics = execution_metadata.get('projects')
     # Get the commit hash
     glide_hash = execution_metadata.get('glide_commit', '')
     glide_test_hash = execution_metadata.get('test_commit', '')
@@ -243,6 +243,7 @@ def main():
         'test_branch': test_branch,
         'glide_commit_hash': glide_hash,
         'glide_test_commit_hash': glide_test_hash,
+        'test_project_metrics': test_project_metrics,
         'test_results': all_test_cases
     }
 
