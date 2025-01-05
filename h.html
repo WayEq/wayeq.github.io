@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacker News Popular Topics</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    a {
+      text-decoration: none;
+      color: #0073e6;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      text-align: center;
+      font-size: 20px;
+    }
+    .comments-link {
+      margin-left: 10px;
+      color: #ff6600;
+    }
+    .domain {
+      color: gray;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
+    .controls {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    select {
+      padding: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Hacker News Topics with 50+ Comments</h1>
+
+<div class="controls">
+  <label for="commentFilter">Minimum Comments: </label>
+  <select id="commentFilter">
+    <option value="50">50</option>
+    <option value="100" selected>100</option>
+    <option value="200">200</option>
+  </select>
+</div>
+
+<p class="loading">Loading stories...</p>
+<ul id="stories"></ul>
+
+<script>
+  // Function to fetch top stories
+  async function fetchTopStories() {
+    const topStoriesUrl = 'https://hacker-news.firebaseio.com/v0/topstories.json';
+    const response = await fetch(topStoriesUrl);
+    return response.json();
+  }
+
+  // Function to fetch story details by ID
+  async function fetchStoryDetails(storyId) {
+    const storyUrl = `https://hacker-news.firebaseio.com/v0/item/${storyId}.json`;
+    const response = await fetch(storyUrl);
+    return response.json();
+  }
+
+  // Function to extract domain from URL
+  function getDomainFromUrl(url) {
+    try {
+      return new URL(url).hostname.replace('www.', '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  // Function to display stories with a specified minimum number of comments
+  async function displayPopularStories(minComments) {
+    const storiesList = document.getElementById('stories');
+    const loadingText = document.querySelector('.loading');
+    storiesList.innerHTML = '';  // Clear the current list
+    loadingText.style.display = 'block';
+
+    // Get top stories
+    const topStories = await fetchTopStories();
+    
+    // Limit the number of stories fetched to 50 for better performance
+    const top50 = topStories.slice(0, 50);
+    
+    let storiesCount = 0;
+
+    // Loop over each story
+    for (const storyId of top50) {
+      const storyDetails = await fetchStoryDetails(storyId);
+      if (storyDetails && storyDetails.descendants >= minComments) {
+        // Create list item
+        const listItem = document.createElement('li');
+        
+        // Story link
+        const storyLink = document.createElement('a');
+        storyLink.href = storyDetails.url;
+        storyLink.target = '_blank';
+        storyLink.textContent = `${storyDetails.title}`;
+        
+        // Comments link
+        const commentsLink = document.createElement('a');
+        commentsLink.href = `https://news.ycombinator.com/item?id=${storyDetails.id}`;
+        commentsLink.target = '_blank';
+        commentsLink.className = 'comments-link';
+        commentsLink.textContent = `(Comments: ${storyDetails.descendants})`;
+
+        // Domain (if available)
+        const domainText = document.createElement('span');
+        const domain = getDomainFromUrl(storyDetails.url);
+        if (domain) {
+          domainText.className = 'domain';
+          domainText.textContent = `(${domain})`;
+        }
+
+        // Append links and domain to list item
+        listItem.appendChild(storyLink);
+        if (domain) listItem.appendChild(domainText);
+        listItem.appendChild(commentsLink);
+        
+        // Append list item to the unordered list
+        storiesList.appendChild(listItem);
+        
+        storiesCount++;
+      }
+    }
+
+    // Hide the loading text if stories are found
+    if (storiesCount > 0) {
+      loadingText.style.display = 'none';
+    } else {
+      loadingText.textContent = 'No stories with the specified minimum comments found.';
+    }
+  }
+
+  // Event listener for comment filter change
+  document.getElementById('commentFilter').addEventListener('change', function() {
+    const minComments = parseInt(this.value);
+    displayPopularStories(minComments);
+  });
+
+  // Initialize the script with the default filter (100 comments)
+  displayPopularStories(100);
+</script>
+
+</body>
+</html>
+
