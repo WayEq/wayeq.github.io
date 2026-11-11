@@ -47,6 +47,24 @@
       font-size: 0.85em;
       cursor: pointer;
     }
+    .thread {
+      margin-top: 8px;
+      max-height: 500px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      font-size: 0.9em;
+    }
+    .comment .comment {
+      margin-left: 16px;
+      padding-left: 10px;
+      border-left: 1px solid #ddd;
+    }
+    .comment { margin: 8px 0; }
+    .author { color: gray; font-size: 0.85em; }
+    .thread p { margin: 4px 0; }
+    .thread pre { overflow-x: auto; }
     .controls {
       margin-bottom: 20px;
       text-align: center;
@@ -104,6 +122,65 @@
   function velocityOf(story) {
     const hours = Math.max((Date.now() / 1000 - story.time) / 3600, 0.25);
     return (story.descendants || 0) / hours;
+  }
+
+  // Keep only simple formatting from comment HTML (HN text is already filtered; this is belt and braces)
+  function cleanHtml(html) {
+    const doc = new DOMParser().parseFromString(html || '', 'text/html');
+    const allowed = new Set(['P', 'A', 'I', 'EM', 'PRE', 'CODE', 'BR']);
+    (function walk(node) {
+      for (const child of [...node.children]) {
+        if (!allowed.has(child.tagName)) {
+          child.replaceWith(document.createTextNode(child.textContent));
+          continue;
+        }
+        for (const attr of [...child.attributes]) {
+          if (!(child.tagName === 'A' && attr.name === 'href')) child.removeAttribute(attr.name);
+        }
+        if (child.tagName === 'A') {
+          if (!/^https?:/i.test(child.getAttribute('href') || '')) child.removeAttribute('href');
+          child.target = '_blank';
+          child.rel = 'noopener';
+        }
+        walk(child);
+      }
+    })(doc.body);
+    return doc.body.innerHTML;
+  }
+
+  function renderComment(c) {
+    const div = document.createElement('div');
+    div.className = 'comment';
+    const who = document.createElement('div');
+    who.className = 'author';
+    who.textContent = c.author || '[deleted]';
+    const body = document.createElement('div');
+    body.innerHTML = cleanHtml(c.text);
+    div.appendChild(who);
+    div.appendChild(body);
+    for (const child of c.children || []) {
+      if (child.text) div.appendChild(renderComment(child));
+    }
+    return div;
+  }
+
+  async function toggleComments(story, listItem) {
+    const existing = listItem.querySelector('.thread');
+    if (existing) { existing.remove(); return; }
+    const panel = document.createElement('div');
+    panel.className = 'thread';
+    panel.textContent = 'Loading comments...';
+    listItem.appendChild(panel);
+    try {
+      const item = await fetchJson(`https://hn.algolia.com/api/v1/items/${story.id}`);
+      panel.textContent = '';
+      for (const c of item.children || []) {
+        if (c.text) panel.appendChild(renderComment(c));
+      }
+      if (!panel.hasChildNodes()) panel.textContent = 'No comments.';
+    } catch (e) {
+      panel.textContent = 'Could not load comments.';
+    }
   }
 
   async function loadStories() {
@@ -167,8 +244,8 @@
       both.textContent = '[open both]';
       both.title = 'Open the article and its comments';
       both.addEventListener('click', () => {
-        window.open(commentsUrl(story), '_blank');
         if (story.url) window.open(story.url, '_blank');
+        toggleComments(story, listItem);
       });
       listItem.appendChild(both);
 
