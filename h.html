@@ -47,12 +47,30 @@
       font-size: 0.85em;
       cursor: pointer;
     }
-    .thread {
-      margin-top: 8px;
-      max-height: 500px;
-      overflow-y: auto;
+    #viewer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
       background: #fff;
-      border: 1px solid #ddd;
+      flex-direction: column;
+    }
+    #viewer.open { display: flex; }
+    #viewerBar {
+      padding: 8px 12px;
+      background: #f4f4f9;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    #viewerTitle { flex: 1; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #viewerFrame { flex: 1 1 55%; border: 0; min-height: 0; width: 100%; }
+    #viewerComments {
+      flex: 1 1 45%;
+      min-height: 0;
+      overflow-y: auto;
+      border-top: 3px solid #ff6600;
       padding: 8px 12px;
       font-size: 0.9em;
     }
@@ -63,8 +81,8 @@
     }
     .comment { margin: 8px 0; }
     .author { color: gray; font-size: 0.85em; }
-    .thread p { margin: 4px 0; }
-    .thread pre { overflow-x: auto; }
+    #viewerComments p { margin: 4px 0; }
+    #viewerComments pre { overflow-x: auto; }
     .controls {
       margin-bottom: 20px;
       text-align: center;
@@ -96,6 +114,16 @@
 
 <p class="loading">Loading stories...</p>
 <ul id="stories"></ul>
+
+<div id="viewer">
+  <div id="viewerBar">
+    <span id="viewerTitle"></span>
+    <a id="viewerOpenArticle" target="_blank" rel="noopener">article in new tab ↗</a>
+    <a id="viewerClose" style="cursor:pointer">close ✕</a>
+  </div>
+  <iframe id="viewerFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  <div id="viewerComments"></div>
+</div>
 
 <script>
   const HOT_VELOCITY = 40; // comments per hour (avg since posted) that earns a 🔥
@@ -164,16 +192,32 @@
     return div;
   }
 
-  async function toggleComments(story, listItem) {
-    const existing = listItem.querySelector('.thread');
-    if (existing) { existing.remove(); return; }
-    const panel = document.createElement('div');
-    panel.className = 'thread';
+  async function openViewer(story) {
+    const viewer = document.getElementById('viewer');
+    const frame = document.getElementById('viewerFrame');
+    const panel = document.getElementById('viewerComments');
+    document.getElementById('viewerTitle').textContent = story.title;
+    const articleLink = document.getElementById('viewerOpenArticle');
+    if (story.url) {
+      articleLink.href = story.url;
+      articleLink.style.display = '';
+      frame.style.display = '';
+      frame.src = story.url; // sites that forbid framing will show blank/refused; use the new-tab link
+    } else {
+      articleLink.style.display = 'none';
+      frame.style.display = 'none'; // Ask HN etc: the post text is in the comments pane
+      frame.removeAttribute('src');
+    }
+    viewer.classList.add('open');
     panel.textContent = 'Loading comments...';
-    listItem.appendChild(panel);
     try {
       const item = await fetchJson(`https://hn.algolia.com/api/v1/items/${story.id}`);
       panel.textContent = '';
+      if (!story.url && item.text) {
+        const post = document.createElement('div');
+        post.innerHTML = cleanHtml(item.text);
+        panel.appendChild(post);
+      }
       for (const c of item.children || []) {
         if (c.text) panel.appendChild(renderComment(c));
       }
@@ -182,6 +226,13 @@
       panel.textContent = 'Could not load comments.';
     }
   }
+
+  function closeViewer() {
+    document.getElementById('viewer').classList.remove('open');
+    document.getElementById('viewerFrame').removeAttribute('src');
+  }
+  document.getElementById('viewerClose').addEventListener('click', closeViewer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeViewer(); });
 
   async function loadStories() {
     const ids = (await fetchJson(`${HN}/topstories.json`)).slice(0, 100);
@@ -242,11 +293,8 @@
       const both = document.createElement('a');
       both.className = 'open-both';
       both.textContent = '[open both]';
-      both.title = 'Open the article and its comments';
-      both.addEventListener('click', () => {
-        if (story.url) window.open(story.url, '_blank');
-        toggleComments(story, listItem);
-      });
+      both.title = 'View the article with its comments below';
+      both.addEventListener('click', () => openViewer(story));
       listItem.appendChild(both);
 
       storiesList.appendChild(listItem);
