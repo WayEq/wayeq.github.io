@@ -5,49 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hacker News Popular Topics</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
-    h1 {
-      text-align: center;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin: 10px 0;
-    }
-    a {
-      text-decoration: none;
-      color: #0073e6;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .loading {
-      text-align: center;
-      font-size: 20px;
-    }
-    .comments-link {
-      margin-left: 10px;
-      color: #ff6600;
-    }
-    .domain {
-      color: gray;
-      font-size: 0.9em;
-      margin-left: 5px;
-    }
-    .controls {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    select {
-      padding: 5px;
-      font-size: 16px;
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; color: #222; }
+    h1 { text-align: center; }
+    ul { list-style: none; padding: 0; max-width: 900px; margin: 0 auto; }
+    li { margin: 10px 0; padding: 10px 12px; background: #fff; border-radius: 6px; border-left: 4px solid transparent; display: flex; gap: 12px; align-items: center; }
+    li.hot { border-left-color: #ff4500; background: #fff6f0; }
+    li.warm { border-left-color: #ffa500; }
+    .main { flex: 1; min-width: 0; }
+    a { text-decoration: none; color: #0073e6; }
+    a:hover { text-decoration: underline; }
+    .loading { text-align: center; font-size: 20px; }
+    .comments-link { color: #ff6600; }
+    .domain { color: gray; font-size: 0.9em; margin-left: 5px; }
+    .meta { font-size: 0.85em; color: #666; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+    .badge { font-weight: bold; padding: 1px 7px; border-radius: 10px; font-size: 0.85em; }
+    .badge.hot { background: #ff4500; color: #fff; }
+    .badge.warm { background: #ffa500; color: #fff; }
+    .controls { margin-bottom: 20px; text-align: center; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    select, button { padding: 5px; font-size: 16px; }
+    .open-both { white-space: nowrap; background: #ff6600; color: #fff; border: 0; border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+    .open-both:hover { background: #e55a00; }
+    .hint { text-align: center; color: #888; font-size: 0.85em; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1b1b1f; color: #ddd; }
+      li { background: #26262c; }
+      li.hot { background: #3a2418; }
+      a { color: #6cb2ff; }
+      .meta { color: #9a9aa3; }
+      select, button { background: #333; color: #ddd; border: 1px solid #555; }
+      .open-both { background: #ff6600; color: #fff; border: 0; }
     }
   </style>
 </head>
@@ -56,114 +42,162 @@
 <h1>Hacker News Popular Topics</h1>
 
 <div class="controls">
-  <label for="commentFilter">Minimum Comments: </label>
-  <select id="commentFilter">
-    <option value="50">50</option>
-    <option value="100" selected>100</option>
-    <option value="200">200</option>
-  </select>
+  <label>Minimum Comments:
+    <select id="commentFilter">
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100" selected>100</option>
+      <option value="200">200</option>
+    </select>
+  </label>
+  <label>Sort by:
+    <select id="sortBy">
+      <option value="comments" selected>Comments</option>
+      <option value="velocity">Comment velocity</option>
+      <option value="points">Points</option>
+      <option value="newest">Newest</option>
+    </select>
+  </label>
+  <button id="refresh" type="button">Refresh</button>
 </div>
+<p class="hint">🔥 hot = ≥ 40 comments/hr &nbsp;·&nbsp; 🔸 warm = ≥ 15 comments/hr (average since posted). "Open both" needs popups allowed for this site.</p>
 
 <p class="loading">Loading stories...</p>
 <ul id="stories"></ul>
 
 <script>
-  // Function to fetch top stories
-  async function fetchTopStories() {
-    const topStoriesUrl = 'https://hacker-news.firebaseio.com/v0/topstories.json';
-    const response = await fetch(topStoriesUrl);
-    return response.json();
+  const HOT_VELOCITY = 40;   // comments per hour
+  const WARM_VELOCITY = 15;
+  const STORY_COUNT = 100;   // how many top stories to scan
+  const HN = 'https://hacker-news.firebaseio.com/v0';
+
+  let allStories = [];
+
+  async function fetchJson(url) {
+    const r = await fetch(url);
+    return r.json();
   }
 
-  // Function to fetch story details by ID
-  async function fetchStoryDetails(storyId) {
-    const storyUrl = `https://hacker-news.firebaseio.com/v0/item/${storyId}.json`;
-    const response = await fetch(storyUrl);
-    return response.json();
-  }
-
-  // Function to extract domain from URL
   function getDomainFromUrl(url) {
-    try {
-      return new URL(url).hostname.replace('www.', '');
-    } catch (e) {
-      return '';
-    }
+    try { return new URL(url).hostname.replace('www.', ''); } catch (e) { return ''; }
   }
 
-  // Function to display stories with a specified minimum number of comments
-  async function displayPopularStories(minComments) {
-    const storiesList = document.getElementById('stories');
-    const loadingText = document.querySelector('.loading');
-    storiesList.innerHTML = '';  // Clear the current list
-    loadingText.style.display = 'block';
+  function commentsUrl(s) { return `https://news.ycombinator.com/item?id=${s.id}`; }
 
-    // Get top stories
-    const topStories = await fetchTopStories();
-    
-    // Limit the number of stories fetched to 50 for better performance
-    const top50 = topStories.slice(0, 50);
-    
-    let storiesCount = 0;
+  function velocityOf(s) {
+    const hours = Math.max((Date.now() / 1000 - s.time) / 3600, 0.25); // floor avoids huge values for brand-new posts
+    return (s.descendants || 0) / hours;
+  }
 
-    // Loop over each story
-    for (const storyId of top50) {
-      const storyDetails = await fetchStoryDetails(storyId);
-      if (storyDetails && storyDetails.descendants >= minComments) {
-        // Create list item
-        const listItem = document.createElement('li');
-        
-        // Story link
-        const storyLink = document.createElement('a');
-        storyLink.href = storyDetails.url;
-        storyLink.target = '_blank';
-        storyLink.textContent = `${storyDetails.title}`;
-        
-        // Comments link
-        const commentsLink = document.createElement('a');
-        commentsLink.href = `https://news.ycombinator.com/item?id=${storyDetails.id}`;
-        commentsLink.target = '_blank';
-        commentsLink.className = 'comments-link';
-        commentsLink.textContent = `(Comments: ${storyDetails.descendants})`;
+  function formatAge(s) {
+    const mins = Math.round((Date.now() / 1000 - s.time) / 60);
+    return mins < 60 ? `${mins}m ago` : `${Math.round(mins / 6) / 10}h ago`;
+  }
 
-        // Domain (if available)
-        const domainText = document.createElement('span');
-        const domain = getDomainFromUrl(storyDetails.url);
-        if (domain) {
-          domainText.className = 'domain';
-          domainText.textContent = `(${domain})`;
-        }
+  async function loadStories() {
+    const loading = document.querySelector('.loading');
+    loading.textContent = 'Loading stories...';
+    loading.style.display = 'block';
+    document.getElementById('stories').innerHTML = '';
+    const ids = (await fetchJson(`${HN}/topstories.json`)).slice(0, STORY_COUNT);
+    // Fetch all in parallel (the original fetched one at a time)
+    const items = await Promise.all(ids.map(id => fetchJson(`${HN}/item/${id}.json`).catch(() => null)));
+    allStories = items.filter(s => s && !s.deleted && !s.dead).map(s => ({ ...s, velocity: velocityOf(s) }));
+    render();
+  }
 
-        // Append links and domain to list item
-        listItem.appendChild(storyLink);
-        if (domain) listItem.appendChild(domainText);
-        listItem.appendChild(commentsLink);
-        
-        // Append list item to the unordered list
-        storiesList.appendChild(listItem);
-        
-        storiesCount++;
+  function render() {
+    const minComments = parseInt(document.getElementById('commentFilter').value);
+    const sortBy = document.getElementById('sortBy').value;
+    const list = document.getElementById('stories');
+    const loading = document.querySelector('.loading');
+    list.innerHTML = '';
+
+    const sorters = {
+      comments: (a, b) => (b.descendants || 0) - (a.descendants || 0),
+      velocity: (a, b) => b.velocity - a.velocity,
+      points: (a, b) => (b.score || 0) - (a.score || 0),
+      newest: (a, b) => b.time - a.time,
+    };
+    const stories = allStories
+      .filter(s => (s.descendants || 0) >= minComments)
+      .sort(sorters[sortBy]);
+
+    for (const s of stories) {
+      const tier = s.velocity >= HOT_VELOCITY ? 'hot' : s.velocity >= WARM_VELOCITY ? 'warm' : '';
+      const li = document.createElement('li');
+      if (tier) li.className = tier;
+
+      const main = document.createElement('div');
+      main.className = 'main';
+
+      const title = document.createElement('a');
+      title.href = s.url || commentsUrl(s); // Ask HN etc. have no url
+      title.target = '_blank';
+      title.rel = 'noopener';
+      title.textContent = s.title;
+      main.appendChild(title);
+
+      const domain = getDomainFromUrl(s.url);
+      if (domain) {
+        const d = document.createElement('span');
+        d.className = 'domain';
+        d.textContent = `(${domain})`;
+        main.appendChild(d);
       }
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      if (tier) {
+        const b = document.createElement('span');
+        b.className = `badge ${tier}`;
+        b.textContent = tier === 'hot' ? '🔥 HOT' : '🔸 warm';
+        meta.appendChild(b);
+      }
+      const cl = document.createElement('a');
+      cl.href = commentsUrl(s);
+      cl.target = '_blank';
+      cl.rel = 'noopener';
+      cl.className = 'comments-link';
+      cl.textContent = `${s.descendants} comments`;
+      meta.appendChild(cl);
+      for (const text of [`${s.score} pts`, `${s.velocity.toFixed(1)} comments/hr`, formatAge(s)]) {
+        const sp = document.createElement('span');
+        sp.textContent = text;
+        meta.appendChild(sp);
+      }
+      main.appendChild(meta);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'open-both';
+      btn.textContent = 'Open both ↗';
+      btn.title = 'Open the article and its HN comments in new tabs';
+      btn.addEventListener('click', () => {
+        // Open comments first, then the article, so the article ends up as the focused tab order-wise
+        window.open(commentsUrl(s), '_blank', 'noopener');
+        if (s.url) window.open(s.url, '_blank', 'noopener');
+      });
+
+      li.appendChild(main);
+      li.appendChild(btn);
+      list.appendChild(li);
     }
 
-    // Hide the loading text if stories are found
-    if (storiesCount > 0) {
-      loadingText.style.display = 'none';
+    if (stories.length > 0) {
+      loading.style.display = 'none';
     } else {
-      loadingText.textContent = 'No stories with the specified minimum comments found.';
+      loading.textContent = 'No stories with the specified minimum comments found.';
+      loading.style.display = 'block';
     }
   }
 
-  // Event listener for comment filter change
-  document.getElementById('commentFilter').addEventListener('change', function() {
-    const minComments = parseInt(this.value);
-    displayPopularStories(minComments);
-  });
+  document.getElementById('commentFilter').addEventListener('change', render);
+  document.getElementById('sortBy').addEventListener('change', render);
+  document.getElementById('refresh').addEventListener('click', loadStories);
 
-  // Initialize the script with the default filter (100 comments)
-  displayPopularStories(100);
+  loadStories();
 </script>
 
 </body>
 </html>
-
