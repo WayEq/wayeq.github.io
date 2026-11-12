@@ -166,10 +166,13 @@
       both.className = 'open-both';
       both.textContent = '[open both]';
       both.title = 'Open the article and its comments';
-      both.addEventListener('click', () => {
-        window.open(commentsUrl(story), '_blank');
-        if (story.url) window.open(story.url, '_blank');
-      });
+      // The link's own navigation opens the article (never popup-blocked);
+      // the handler opens just one extra window for the comments.
+      both.href = story.url || commentsUrl(story);
+      both.target = '_blank';
+      if (story.url) {
+        both.addEventListener('click', () => window.open(commentsUrl(story), '_blank'));
+      }
       listItem.appendChild(both);
 
       storiesList.appendChild(listItem);
