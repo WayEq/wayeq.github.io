@@ -44,6 +44,25 @@
       font-size: 0.9em;
       margin-left: 5px;
     }
+    .top-comment {
+      margin: 3px 0 0;
+      color: #666;
+      font-size: 0.85em;
+      line-height: 1.4;
+      max-width: 800px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      cursor: pointer;
+    }
+    .top-comment.expanded {
+      display: block;
+      white-space: pre-line;
+    }
+    .top-comment .by {
+      color: #999;
+    }
     .open-both {
       margin-left: 10px;
       color: gray;
@@ -125,6 +144,26 @@
     return `https://news.ycombinator.com/item?id=${story.id}`;
   }
 
+  // HN comment text is HTML; turn it into plain text (DOMParser never runs scripts).
+  function commentToText(html) {
+    const withBreaks = html.replace(/<p>/gi, '\n\n');
+    return new DOMParser().parseFromString(withBreaks, 'text/html').body.textContent.trim();
+  }
+
+  // Top comment = first live child (HN returns kids in ranked order). Cached per story.
+  function topCommentOf(story) {
+    if (!story.topComment) {
+      story.topComment = (async () => {
+        for (const id of (story.kids || []).slice(0, 5)) {
+          const c = await fetchJson(`${HN}/item/${id}.json`).catch(() => null);
+          if (c && !c.deleted && !c.dead && c.text) return c;
+        }
+        return null;
+      })();
+    }
+    return story.topComment;
+  }
+
   function velocityOf(story) {
     const hours = Math.max((Date.now() / 1000 - story.time) / 3600, 0.25);
     return (story.descendants || 0) / hours;
@@ -203,6 +242,19 @@
         both.addEventListener('click', () => window.open(commentsUrl(story), '_blank'));
       }
       listItem.appendChild(both);
+
+      const topComment = document.createElement('div');
+      topComment.className = 'top-comment';
+      topComment.title = 'Click to expand';
+      topComment.addEventListener('click', () => topComment.classList.toggle('expanded'));
+      topCommentOf(story).then(c => {
+        if (!c) return;
+        const by = document.createElement('span');
+        by.className = 'by';
+        by.textContent = `${c.by}: `;
+        topComment.append(by, commentToText(c.text));
+        listItem.appendChild(topComment);
+      });
 
       storiesList.appendChild(listItem);
     }
