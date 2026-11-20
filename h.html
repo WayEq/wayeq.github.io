@@ -19,7 +19,13 @@
       padding: 0;
     }
     li {
-      margin: 10px 0;
+      margin: 6px 0;
+      padding: 4px 8px;
+      border-left: 3px solid transparent;
+    }
+    li.unseen {
+      background-color: #fffbea;
+      border-left-color: #ffd27a;
     }
     a {
       text-decoration: none;
@@ -82,7 +88,28 @@
 <script>
   const HOT_VELOCITY = 40; // comments per hour (avg since posted) that earns a 🔥
   const HN = 'https://hacker-news.firebaseio.com/v0';
+  const SEEN_KEY = 'hn-seen';
+  const SEEN_TTL = 30 * 24 * 3600 * 1000; // forget clicks after 30 days
   let allStories = [];
+
+  // Clicked story ids -> timestamp, kept in localStorage.
+  function loadSeen() {
+    try {
+      const seen = JSON.parse(localStorage.getItem(SEEN_KEY)) || {};
+      const cutoff = Date.now() - SEEN_TTL;
+      for (const id in seen) if (seen[id] < cutoff) delete seen[id];
+      return seen;
+    } catch (e) {
+      return {};
+    }
+  }
+  const seen = loadSeen();
+
+  function markSeen(story, listItem) {
+    seen[story.id] = Date.now();
+    listItem.classList.remove('unseen');
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+  }
 
   async function fetchJson(url) {
     const response = await fetch(url);
@@ -107,7 +134,7 @@
   }
 
   async function loadStories() {
-    const ids = (await fetchJson(`${HN}/topstories.json`)).slice(0, 100);
+    const ids = (await fetchJson(`${HN}/topstories.json`)).slice(0, 50);
     const items = await Promise.all(ids.map(id => fetchJson(`${HN}/item/${id}.json`).catch(() => null)));
     allStories = items
       .filter(s => s && !s.deleted && !s.dead)
@@ -133,6 +160,11 @@
 
     for (const story of stories) {
       const listItem = document.createElement('li');
+      if (!seen[story.id]) listItem.classList.add('unseen');
+      // Any click on a link (left or middle) marks the story as seen.
+      const onLinkClick = e => { if (e.target.closest('a')) markSeen(story, listItem); };
+      listItem.addEventListener('click', onLinkClick);
+      listItem.addEventListener('auxclick', onLinkClick);
 
       const storyLink = document.createElement('a');
       storyLink.href = story.url || commentsUrl(story);
