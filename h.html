@@ -96,6 +96,7 @@
     <option value="velocity">Velocity</option>
     <option value="newest">Newest</option>
   </select>
+  <label style="margin-left: 15px;"><input type="checkbox" id="showTopComment"> Top comment</label>
 </div>
 
 <p class="loading">Loading stories...</p>
@@ -243,18 +244,20 @@
       }
       listItem.appendChild(both);
 
-      const topComment = document.createElement('div');
-      topComment.className = 'top-comment';
-      topComment.title = 'Click to expand';
-      topComment.addEventListener('click', () => topComment.classList.toggle('expanded'));
-      topCommentOf(story).then(c => {
-        if (!c) return;
-        const by = document.createElement('span');
-        by.className = 'by';
-        by.textContent = `${c.by}: `;
-        topComment.append(by, commentToText(c.text));
-        listItem.appendChild(topComment);
-      });
+      if (document.getElementById('showTopComment').checked) {
+        const topComment = document.createElement('div');
+        topComment.className = 'top-comment';
+        topComment.title = 'Click to expand';
+        topComment.addEventListener('click', () => topComment.classList.toggle('expanded'));
+        topCommentOf(story).then(c => {
+          if (!c) return;
+          const by = document.createElement('span');
+          by.className = 'by';
+          by.textContent = `${c.by}: `;
+          topComment.append(by, commentToText(c.text));
+          listItem.appendChild(topComment);
+        });
+      }
 
       storiesList.appendChild(listItem);
     }
@@ -269,6 +272,7 @@
 
   document.getElementById('commentFilter').addEventListener('change', render);
   document.getElementById('sortBy').addEventListener('change', render);
+  document.getElementById('showTopComment').addEventListener('change', render);
 
   loadStories();
 </script>
